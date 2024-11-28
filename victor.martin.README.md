@@ -1,0 +1,1 @@
+Today we got to know our partners. I started to get familiar with the git repository for common project. Branches, merging, first commits etc.
