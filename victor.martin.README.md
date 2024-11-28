@@ -1,1 +1,1 @@
-Today we got to know our partners. I started to get familiar with the git repository for common project. Branches, merging, first commits etc.
+Today we got to know our partners. I started to get familiar with the git repository for common project. Branches, merging, first commits etc. We also discussed about the structure of the project and how are we gonna organise and structure the project.
