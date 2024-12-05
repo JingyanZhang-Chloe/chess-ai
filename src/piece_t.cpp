@@ -1,0 +1,3 @@
+#include <piece_t.h>
+
+piece_t::piece_t(piece_kind kind, player_color color) : kind{ kind }, color{ color } {};
