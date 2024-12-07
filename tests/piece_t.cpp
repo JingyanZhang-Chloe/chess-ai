@@ -1,6 +1,6 @@
 #include <piece_t.h>
 
-void test1() {
+int main() {
 	// Create a white rook
 	piece_t white_rook { piece_kind::rook, player_color::white };
 };
