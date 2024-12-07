@@ -34,6 +34,14 @@ _test() {
 		rm -f build/$filename
 	done
 }
+
+run() {
+	build
+	echo
+	echo -e "\033[1;94mProgram Output:\033[0m"
+	echo
+	./build/blunder-ai
+}
 		
 
 while getopts ":bt-:" option;
@@ -45,6 +53,9 @@ do
 		t|test)
 			_test
 			;;
+		r|run)
+			run
+			;;
 		-)
 			case "${OPTARG}" in
 				build)
@@ -52,6 +63,9 @@ do
 					;;
 				test)
 					_test
+					;;
+				run)
+					run
 					;;
 			esac
 			;;
