@@ -1,11 +1,16 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.30)
+set(CMAKE_CXX_STANDARD 20)
 
 project(blunder-ai)
 
-file(GLOB sources "src/*.cpp")
-include_directories(${PROJECT_SOURCE_DIR}/include)
+add_subdirectory(lib)
+include_directories(${PROJECT_SOURCE_DIR}/lib/include)
 
-add_executable(${PROJECT_NAME} ${sources})
+file(GLOB sources exe/*.cpp)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+foreach(source IN LISTS sources)
+	cmake_path(GET source STEM exec-name)
 
+	add_executable(${exec-name} ${source})
+	target_link_libraries(${exec-name} engine)
+endforeach()
