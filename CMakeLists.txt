@@ -12,5 +12,5 @@ foreach(source IN LISTS sources)
 	cmake_path(GET source STEM exec-name)
 
 	add_executable(${exec-name} ${source})
-	target_link_libraries(${exec-name} engine)
+	target_link_libraries(${exec-name} PRIVATE engine)
 endforeach()

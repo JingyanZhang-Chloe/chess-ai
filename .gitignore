@@ -1,4 +1,5 @@
 build/*
+.cmake
 .vscode
 .clangd
 .DS_Store
