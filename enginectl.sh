@@ -18,7 +18,7 @@ usage() {
 	echo -e "\t\033[1m-h/--help\033[0m: Displays the usage guide\n"
 
 	echo -e "\033[1mExample\033[0m:"
-	echo -e "./enginectl --run"
+	echo -e "./enginectl.sh --run"
 }
 
 build() {
