@@ -1,7 +1,25 @@
 #!/bin/bash
 
-mkdir -p .cmake
-cmake -B .cmake -S .
+run_cmake() {
+	mkdir -p .cmake
+	cmake -B .cmake -S .
+}
+
+usage() {
+	echo -e "\033[1mEngine CTL Usage\033[0m\n"
+
+	echo -e -n "\t\033[1m-b/--build\033[0m: Builds all executables (files with sources found in the ./exe directory). "
+	echo -e "You can find the executable binaries in the ./build directory\n"
+
+	echo -e "\t\033[1m-r/--run\033[0m: Builds the project, then runs the blunder-ai executable\n"
+
+	echo -e "\t\033[1m-t/--test\033[0m: Builds the project, then runs all unit tests\n"
+
+	echo -e "\t\033[1m-h/--help\033[0m: Displays the usage guide\n"
+
+	echo -e "\033[1mExample\033[0m:"
+	echo -e "./enginectl --run"
+}
 
 build() {
 	mkdir -p build
@@ -44,28 +62,40 @@ run() {
 }
 		
 
-while getopts ":bt-:" option;
+while getopts ":btrh-:" option;
 do
 	case $option in
 		b|build)
+			run_cmake
 			build
 			;;
 		t|test)
+			run_cmake
 			_test
 			;;
 		r|run)
+			run_cmake
 			run
+			;;
+		h|help)
+			usage
 			;;
 		-)
 			case "${OPTARG}" in
 				build)
+					run_cmake
 					build
 					;;
 				test)
+					run_cmake
 					_test
 					;;
 				run)
+					run_cmake	
 					run
+					;;
+				help)
+					usage
 					;;
 			esac
 			;;
