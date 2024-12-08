@@ -1,4 +1,4 @@
-![Engine v1 Diagram](chess-ai-v1.png)
+![Engine v1 Diagram](images/chess-ai-v1.png)
 
 The program flow is a summary of how the engine works.<br><br>
 
