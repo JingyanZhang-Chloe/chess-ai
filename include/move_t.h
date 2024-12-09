@@ -12,3 +12,5 @@ struct move_t {
 };
 
 std::ostream& operator << (std::ostream& os, move_t& move);
+
+
