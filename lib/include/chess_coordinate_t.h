@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <cstdint>
@@ -16,6 +17,8 @@ class chess_coordinate_t {
 		uint8_t coordinate;
 };
 
-std::ostream& operator<<(std::ostream&, chess_coordinate_t);
-
 };
+
+std::ostream& operator << (std::ostream&, engine::chess_coordinate_t);
+
+

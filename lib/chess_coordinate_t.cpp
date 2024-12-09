@@ -12,10 +12,13 @@ chess_coordinate_t::chess_coordinate_t(const std::string& coordinate_spec) {
 	char column_char = std::tolower(coordinate_spec[0]);
 	uint8_t column = column_char - 'a';
 
+	std::cout << "col: " << "\"" << column << "\"";
+
 	char row_char = coordinate_spec[1];
 	uint8_t row = column_char - '1';
 
 	if (column < 0 || column > 7 || row < 0 || row > 7) {
+		std::cout << "Row: " << row << "Column: " << column << std::endl;
 		throw "[Chess Coordinate Error] The column and row indicators in the"
 			" specification string are invalid.";
 	}

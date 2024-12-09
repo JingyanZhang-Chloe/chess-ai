@@ -1,14 +1,14 @@
-#include <move_t.h>
+#include "include/move_t.h"
 #include <iostream>
-#include <helper.h>
+#include "include/chess_coordinate_t.h"
 
+using namespace engine;
 
-move_t::move_t(const std::string& move_spec){
+move_t::move_t(const std::string& move_spec) : source{"a1"}, destination{"a1"} {
     if(move_spec.size() == 4 || move_spec.size() == 5){
-        source.first = helper::chess_coord_to_int(move_spec[0]).value();
-        source.second = helper::chess_coord_to_int(move_spec[1]).value();
-        destination.first = helper::chess_coord_to_int(move_spec[2]).value();
-        destination.second = helper::chess_coord_to_int(move_spec[3]).value();
+        this->source = engine::chess_coordinate_t{move_spec};
+        std::string sub = move_spec.substr(2,4);
+        this->destination = engine::chess_coordinate_t{sub};
         if(move_spec.size() == 5){
             switch (move_spec[4])
             {
@@ -30,15 +30,15 @@ move_t::move_t(const std::string& move_spec){
             };
         }
     }else{
-        throw "Error in the constructor of the move_t";
+        throw "[Move Error] Error in the constructor of the move_t";
     };
 };
 
-std::ostream& operator << (std::ostream& os, move_t& move){
+std::ostream& operator << (std::ostream& os, const move_t& move){
     if(move.promotion_code.has_value()){
-        return os << "From: " << move.source.first << move.source.second << " To: " << move.destination.first << move.destination.second << " With promotion code: " << move.promotion_code.value();
+        return os << "From: " << move.source << " To: " << move.destination << " With promotion code: " << move.promotion_code.value();
     }
     else{
-        return os << "From: " << move.source.first << move.source.second << " To: " << move.destination.first << move.destination.second;
+        return os << "From: " << move.source << " To: " << move.destination;
     }
 }

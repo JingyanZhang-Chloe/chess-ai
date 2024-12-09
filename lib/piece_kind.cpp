@@ -1,6 +1,8 @@
 #include <iostream>
 #include "include/piece_kind.h" 
 
+using namespace engine;
+
 std::ostream& operator<<(std::ostream& os, piece_kind piece_name){
 	switch (piece_name)
 	{
