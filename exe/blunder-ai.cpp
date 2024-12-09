@@ -1,9 +1,10 @@
-#include <move_t.h>
+#include <iostream>
+#include <chess_coordinate_t.h>
 
 int main() {
+	engine::chess_coordinate_t coord{"b1"};
 
-	move_t move = move_t("g1h1k");
-	std::cout << move << std::endl;
+	std::cout << coord;
 
 	return 0;
 }

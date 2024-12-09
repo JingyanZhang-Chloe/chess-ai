@@ -1,14 +1,5 @@
-#include<iostream>
-
-enum class piece_kind {
-	pawn, knight, bishop, rook, queen, king
-};
-
-std::ostream& operator << (std::ostream& os, piece_kind piece_name);
-
-enum class player_color {
-	white, black
-};
+#include "piece_kind.h"
+#include "player_color.h"
 
 struct piece_t {
 	piece_kind kind;
