@@ -1,0 +1,44 @@
+[
+{
+  "directory": "/home/leo/documents/blunder-ai/.cmake",
+  "command": "/sbin/c++  -I/home/leo/documents/blunder-ai/lib/include -g -std=gnu++20 -o CMakeFiles/blunder-ai.dir/exe/blunder-ai.cpp.o -c /home/leo/documents/blunder-ai/exe/blunder-ai.cpp",
+  "file": "/home/leo/documents/blunder-ai/exe/blunder-ai.cpp",
+  "output": "CMakeFiles/blunder-ai.dir/exe/blunder-ai.cpp.o"
+},
+{
+  "directory": "/home/leo/documents/blunder-ai/.cmake",
+  "command": "/sbin/c++  -I/home/leo/documents/blunder-ai/lib/include -g -std=gnu++20 -o CMakeFiles/TEST_move_t.dir/tests/move_t.cpp.o -c /home/leo/documents/blunder-ai/tests/move_t.cpp",
+  "file": "/home/leo/documents/blunder-ai/tests/move_t.cpp",
+  "output": "CMakeFiles/TEST_move_t.dir/tests/move_t.cpp.o"
+},
+{
+  "directory": "/home/leo/documents/blunder-ai/.cmake/lib",
+  "command": "/sbin/c++  -I/home/leo/documents/blunder-ai/lib/include -g -std=gnu++20 -o CMakeFiles/engine.dir/chess_coordinate_t.cpp.o -c /home/leo/documents/blunder-ai/lib/chess_coordinate_t.cpp",
+  "file": "/home/leo/documents/blunder-ai/lib/chess_coordinate_t.cpp",
+  "output": "lib/CMakeFiles/engine.dir/chess_coordinate_t.cpp.o"
+},
+{
+  "directory": "/home/leo/documents/blunder-ai/.cmake/lib",
+  "command": "/sbin/c++  -I/home/leo/documents/blunder-ai/lib/include -g -std=gnu++20 -o CMakeFiles/engine.dir/move_t.cpp.o -c /home/leo/documents/blunder-ai/lib/move_t.cpp",
+  "file": "/home/leo/documents/blunder-ai/lib/move_t.cpp",
+  "output": "lib/CMakeFiles/engine.dir/move_t.cpp.o"
+},
+{
+  "directory": "/home/leo/documents/blunder-ai/.cmake/lib",
+  "command": "/sbin/c++  -I/home/leo/documents/blunder-ai/lib/include -g -std=gnu++20 -o CMakeFiles/engine.dir/piece_kind.cpp.o -c /home/leo/documents/blunder-ai/lib/piece_kind.cpp",
+  "file": "/home/leo/documents/blunder-ai/lib/piece_kind.cpp",
+  "output": "lib/CMakeFiles/engine.dir/piece_kind.cpp.o"
+},
+{
+  "directory": "/home/leo/documents/blunder-ai/.cmake/lib",
+  "command": "/sbin/c++  -I/home/leo/documents/blunder-ai/lib/include -g -std=gnu++20 -o CMakeFiles/engine.dir/piece_t.cpp.o -c /home/leo/documents/blunder-ai/lib/piece_t.cpp",
+  "file": "/home/leo/documents/blunder-ai/lib/piece_t.cpp",
+  "output": "lib/CMakeFiles/engine.dir/piece_t.cpp.o"
+},
+{
+  "directory": "/home/leo/documents/blunder-ai/.cmake/lib",
+  "command": "/sbin/c++  -I/home/leo/documents/blunder-ai/lib/include -g -std=gnu++20 -o CMakeFiles/engine.dir/player_color.cpp.o -c /home/leo/documents/blunder-ai/lib/player_color.cpp",
+  "file": "/home/leo/documents/blunder-ai/lib/player_color.cpp",
+  "output": "lib/CMakeFiles/engine.dir/player_color.cpp.o"
+}
+]
