@@ -9,12 +9,12 @@ class chess_coordinate_t {
 	public:
 		chess_coordinate_t(const std::string&);
 		
-		uint8_t row();
-		uint8_t column();
+		int8_t row();
+		int8_t column();
 		char column_as_char();
 	
 	private:
-		uint8_t coordinate;
+		int8_t coordinate;
 };
 
 };
