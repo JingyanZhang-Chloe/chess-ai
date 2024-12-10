@@ -32,7 +32,7 @@ build() {
 	done
 	echo -e "\033[1;4;32mDone building, executables stored in the build directory\033[0m"
 	cd ..
-	rm ./compile_commands.json
+	rm -f ./compile_commands.json
 	cp .cmake/compile_commands.json .
 }
 
