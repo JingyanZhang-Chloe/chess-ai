@@ -1,3 +1,8 @@
 build/*
+.cmake
+.vscode
 .clangd
 .DS_Store
+.lsproot
+.cache
+compile_commands.json
