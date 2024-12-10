@@ -3,4 +3,6 @@ build/*
 .vscode
 .clangd
 .DS_Store
-.lspinit
+.lsproot
+.cache
+compile_commands.json

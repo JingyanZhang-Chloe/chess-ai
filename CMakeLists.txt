@@ -22,7 +22,7 @@ file(GLOB tests tests/*.cpp)
 # Build unit tests
 foreach(test IN LISTS tests)
 	cmake_path(GET test STEM test-name)
-	message("HERE!!!")
+
 	add_executable("TEST_${test-name}" ${test})
 	target_link_libraries("TEST_${test-name}" PRIVATE engine)
 endforeach()

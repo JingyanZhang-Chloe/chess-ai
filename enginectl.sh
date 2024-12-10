@@ -2,7 +2,7 @@
 
 run_cmake() {
 	mkdir -p .cmake
-	cmake -B .cmake -S .
+	cmake -B .cmake -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 }
 
 usage() {
@@ -32,6 +32,8 @@ build() {
 	done
 	echo -e "\033[1;4;32mDone building, executables stored in the build directory\033[0m"
 	cd ..
+	rm ./compile_commands.json
+	cp .cmake/compile_commands.json .
 }
 
 _test() {
