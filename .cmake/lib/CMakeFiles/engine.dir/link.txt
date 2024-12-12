@@ -1,2 +1,0 @@
-/sbin/ar qc libengine.a CMakeFiles/engine.dir/chess_coordinate_t.cpp.o CMakeFiles/engine.dir/move_t.cpp.o CMakeFiles/engine.dir/piece_kind.cpp.o CMakeFiles/engine.dir/piece_t.cpp.o CMakeFiles/engine.dir/player_color.cpp.o
-/sbin/ranlib libengine.a
