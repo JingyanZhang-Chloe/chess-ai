@@ -20,6 +20,7 @@ class board_t {
 		board_t();
 
 		std::optional<piece_t>& piece(chess_coordinate_t);
+		const std::optional<piece_t>& piece(chess_coordinate_t) const;
 		
 		board_t& make_move(move_t);
 		board_t& unmake_latest_move();
