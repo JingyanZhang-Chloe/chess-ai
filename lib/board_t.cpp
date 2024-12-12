@@ -78,6 +78,23 @@ std::vector<move_t> board_t::get_legal_moves() const {
 	throw "[Board Error] board_t::get_legal_moves unimplemented.";
 };
 
+chess_coordinate_t board_t::king_coordinates(player_color color) const {
+	for (int row = 0; row < 8; row++) {
+		for (int column = 0; column < 8; column++) {
+			std::optional<piece_t> piece = this->piece({ row, column });
+
+			if (piece.has_value()) {
+				if (piece.value().color == color
+						&& piece.value().kind == piece_kind::king) {
+					return { row, column };
+				}
+			}
+		}
+	}
+
+	throw "[Board Error] Less than 2 kings on the board.";
+}
+
 std::ostream& operator << (std::ostream& os, const board_t& board) {
 	os << "\n";
 
