@@ -7,11 +7,13 @@ namespace engine {
 
 class chess_coordinate_t {
 	public:
+		chess_coordinate_t(int row, int column);
 		chess_coordinate_t(const std::string&);
 		
 		int8_t row();
 		int8_t column();
 		char column_as_char();
+		int8_t index();
 	
 	private:
 		int8_t coordinate;
