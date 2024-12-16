@@ -9,6 +9,7 @@ struct piece_t {
 	player_color color;
 
 	piece_t(piece_kind, player_color);
+	
 };
 
 };

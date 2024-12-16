@@ -13,6 +13,7 @@ struct move_t {
 	std::optional<engine::piece_kind> promotion_code;
 
 	move_t(const std::string& move_spec);
+	move_t(chess_coordinate_t start, chess_coordinate_t end);
 };
 
 };
