@@ -32,7 +32,7 @@ class board_t {
 	private:
 		std::optional<piece_t> pieces[64];
 		castling_rights_t castling_rights;
-		std::stack<board_t> history;
+		std::stack<board_t, std::vector<board_t>> history;
 };
 
 };
