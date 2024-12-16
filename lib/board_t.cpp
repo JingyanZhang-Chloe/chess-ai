@@ -98,7 +98,7 @@ chess_coordinate_t board_t::king_coordinates(player_color color) const {
 std::ostream& operator << (std::ostream& os, const board_t& board) {
 	os << "\n";
 
-	for (int row = 0; row < 8; row++) {
+	for (int row = 7; row >= 0; row--) {
 		// Display separator
 		for (int column = 0; column < 8; column++) {
 			os << "----";
