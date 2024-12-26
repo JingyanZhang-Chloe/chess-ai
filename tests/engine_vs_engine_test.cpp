@@ -8,7 +8,7 @@
 
 int main() {
     engine::board_t board;
-    int delai_for_move = 5000; // millieseconds
+    int delai_for_move_allowed = 5000; // millieseconds
     int max_moves = 80; // 40 is the average number of full move during a chess game (20 each)
     std::vector<engine::move_t> legal_moves = board.get_legal_moves();
     bool found = false; // to check if the move is legal
@@ -43,7 +43,7 @@ int main() {
         }
 
 
-        if(total_time_for_move > delai_for_move){
+        if(total_time_for_move > delai_for_move_allowed){
             std::cerr<< "The move" << i << "took more than 5 seconds\n";
             return 1;
         }
