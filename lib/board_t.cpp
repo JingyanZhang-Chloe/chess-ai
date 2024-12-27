@@ -4,6 +4,7 @@
 #include <piece_t.h>
 #include <player_color.h>
 #include <piece_kind.h>
+#include "gen_move_fn.h"
 
 using namespace engine;
 
@@ -74,8 +75,55 @@ board_t& board_t::unmake_latest_move() {
 	return *this;
 };
 
-std::vector<move_t> board_t::get_legal_moves() const {
-	throw "[Board Error] board_t::get_legal_moves unimplemented.";
+std::vector<move_t> board_t::get_legal_moves() const { 
+	std::vector<move_t> legal_moves;
+	player_color turn = player_color::white; //i just put this for now and i will change it when the board gives the color of the player turn
+	for(int row = 0; row < 8; row++){
+		for(int col = 0; col < 8; col++){
+			chess_coordinate_t coord(row, col);
+			const auto& mb_piece = this->piece(coord);
+			if(mb_piece.has_value()==false){
+				continue;
+			}else{
+				piece_t p = mb_piece.value();
+				if(p.color == turn){
+					switch(p.kind){
+						case piece_kind::rook: {
+							auto rook_moves = gen_moves<engine::piece_kind::rook>(coord, turn, *this); 
+							legal_moves.insert(legal_moves.end(), rook_moves.begin(), rook_moves.end());
+                    		break;
+						}
+						case piece_kind::bishop: {
+							auto bishop_moves = gen_moves<engine::piece_kind::bishop>(coord, turn, *this);
+							legal_moves.insert(legal_moves.end(), bishop_moves.begin(), bishop_moves.end());
+                    		break;
+						}
+						case piece_kind::queen: {
+							auto queen_moves = gen_moves<engine::piece_kind::queen>(coord, turn, *this);
+							legal_moves.insert(legal_moves.end(), queen_moves.begin(), queen_moves.end());
+                    		break;
+						}
+						case piece_kind::knight: {
+							auto knight_moves = gen_moves<engine::piece_kind::knight>(coord, turn, *this);
+							legal_moves.insert(legal_moves.end(), knight_moves.begin(), knight_moves.end());
+                    		break;
+						}
+						case piece_kind::king: {
+							auto king_moves = gen_moves<engine::piece_kind::king>(coord, turn, *this);
+							legal_moves.insert(legal_moves.end(), king_moves.begin(), king_moves.end());
+                    		break;
+						}
+						case piece_kind::pawn: {
+							auto pawn_moves = gen_moves<engine::piece_kind::pawn>(coord, turn, *this);
+							legal_moves.insert(legal_moves.end(), pawn_moves.begin(), pawn_moves.end());
+                    		break;
+						}
+					}
+				}
+			}
+		}
+	}
+	return legal_moves;
 };
 
 chess_coordinate_t board_t::king_coordinates(player_color color) const {
