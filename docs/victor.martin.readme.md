@@ -5,3 +5,5 @@ The weekend after we started coding the project. I implemented the board and pie
 The week after, we talked about how we would organize the project so that there is enough tasks to let everyone work at the same time without causing weird thing with the merging etc. I was given the responability of implementing a test function that would be able to make our AI fight against herself and  check if blunder-ai actually play by the rules, performance, delay for a move etc.
 
 I was sick during the two weeks before the chrismas break (i couldn't go to class and study on the project, and i have a note from the doctor). I reimplemented the structure of the board that was not on gitlab anymore. 
+
+Chrismas break: I finally pushed the test engine function wich test the following: The ai thinks for less than 5 seconds, the move is legal, there is a piece where the engine want to do the move. I also implemented a function that get all the possible move of a certain color from the board.
