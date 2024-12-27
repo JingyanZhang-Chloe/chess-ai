@@ -75,7 +75,14 @@ board_t& board_t::unmake_latest_move() {
 };
 
 std::vector<move_t> board_t::get_legal_moves() const {
-	throw "[Board Error] board_t::get_legal_moves unimplemented.";
+	std::vector<move_t> legal_moves;
+	for(int row = 0; row < 8; row++){
+		for(int col = 0; col < 8; col++){
+			chess_coordinate_t coord(row, col);
+			const auto& mb_piece = this->piece(coord);
+
+		}
+	}
 };
 
 chess_coordinate_t board_t::king_coordinates(player_color color) const {

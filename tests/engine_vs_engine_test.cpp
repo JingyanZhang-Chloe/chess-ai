@@ -2,21 +2,21 @@
 #include <chrono>
 #include "move_t.h"
 #include "board_t.h"
-#include "search_t.h"  // for get_best_move()
+#include "search_t.h"
 #include "piece_t.h"
-
+#include <vector>
+#include <optional>
 
 int main() {
     engine::board_t board;
     int delai_for_move_allowed = 5000; // millieseconds
     int max_moves = 80; // 40 is the average number of full move during a chess game (20 each)
-    std::vector<engine::move_t> legal_moves = board.get_legal_moves();
     bool found = false; // to check if the move is legal
 
     std::cout<< "Start test\n\n";
 
     for(int i = 1; i<=max_moves; i++){
-
+        std::vector<engine::move_t> legal_moves = board.get_legal_moves();
         auto starting_time = std::chrono::steady_clock::now();    // mesuring time for the engine to output a move
         engine::move_t move = engine::get_best_move(board);
         auto ending_time = std::chrono::steady_clock::now();
@@ -41,15 +41,14 @@ int main() {
             std::cerr<<"Engine tried to do an illegal move\n";
             return 1;
         }
-
-
+        found = false;
         if(total_time_for_move > delai_for_move_allowed){
             std::cerr<< "The move" << i << "took more than 5 seconds\n";
             return 1;
         }
 
         std::cout << "Move " << i << ": " << move << "\n, piece: " << piece.kind<< ",\n color: " << piece.color << ",\n took " << total_time_for_move << "ms" << std::endl;
-
+        
     }
     return 0;
 }
