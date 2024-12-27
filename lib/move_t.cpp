@@ -56,3 +56,5 @@ std::ostream& operator << (std::ostream& os, const move_t& move){
         return os << "From: " << move.source << " To: " << move.destination;
     }
 }
+
+bool move_t::operator == (const move_t& move) const = default;

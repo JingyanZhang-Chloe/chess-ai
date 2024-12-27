@@ -55,3 +55,5 @@ std::ostream& operator<<(std::ostream& os, chess_coordinate_t coord) {
 
 	return os << column << row;
 };
+
+bool chess_coordinate_t::operator == (const chess_coordinate_t& coor) const = default;

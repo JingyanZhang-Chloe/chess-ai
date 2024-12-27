@@ -14,6 +14,8 @@ class chess_coordinate_t {
 		int8_t column();
 		char column_as_char();
 		int8_t index();
+
+		bool operator == (const chess_coordinate_t& coor) const;
 	
 	private:
 		int8_t coordinate;
