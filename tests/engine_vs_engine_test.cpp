@@ -37,7 +37,7 @@ int main() {
             }
         }
 
-        if(found==false){
+        if(found == false){
             std::cerr<<"Engine tried to do an illegal move\n";
             return 1;
         }
