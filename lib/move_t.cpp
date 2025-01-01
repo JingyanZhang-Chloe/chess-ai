@@ -48,6 +48,21 @@ move_t::move_t(chess_coordinate_t start, chess_coordinate_t end) : source{0,0}, 
     this->destination = end;
 };
 
+move_t::move_t(chess_coordinate_t start, chess_coordinate_t end, piece_kind k) : source{0,0}, destination{0,0}{
+    // we may assume the start coordinate is valid
+    if(end.column() < 0 || end.column() > 7){
+        throw "[Move Constractor Error] invalid end column";
+    };
+
+    if(end.row() < 0 || end.row() > 7){
+        throw "[Move Constractor Error] invalid end row";
+    };
+
+    this->source = start;
+    this->destination = end;
+    this->promotion_code = k;
+}
+
 std::ostream& operator << (std::ostream& os, const move_t& move){
     if(move.promotion_code.has_value()){
         return os << "From: " << move.source << " To: " << move.destination << " With promotion code: " << move.promotion_code.value();

@@ -11,8 +11,10 @@ namespace engine {
 class board_t {
 	public:
 		struct castling_rights_t {
-			bool white;
-			bool black;
+			bool left_white;
+			bool left_black;
+			bool right_white;
+			bool right_black;
 
 			castling_rights_t();
 		};
@@ -29,9 +31,12 @@ class board_t {
 
 		chess_coordinate_t king_coordinates(player_color) const;
 
+		std::optional<move_t> last_move;
+
+		castling_rights_t castling_rights;
+
 	private:
 		std::optional<piece_t> pieces[64];
-		castling_rights_t castling_rights;
 		std::stack<board_t, std::vector<board_t>> history;
 };
 
