@@ -37,6 +37,11 @@ class board_t {
 
 		std::optional<player_color> wining_player();
 
+		player_color turn_color;
+
+		bool is_check();
+		//this function check if the current player is in check
+
 	private:
 		std::optional<piece_t> pieces[64];
 		std::stack<board_t, std::vector<board_t>> history;

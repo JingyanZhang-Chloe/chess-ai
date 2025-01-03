@@ -78,7 +78,7 @@ board_t& board_t::unmake_latest_move() {
 
 std::vector<move_t> board_t::get_legal_moves() const { 
 	std::vector<move_t> legal_moves;
-	player_color turn = player_color::white; //i just put this for now and i will change it when the board gives the color of the player turn
+	player_color turn = turn_color; //I change it to turn color :) //i just put this for now and i will change it when the board gives the color of the player turn
 	for(int row = 0; row < 8; row++){
 		for(int col = 0; col < 8; col++){
 			chess_coordinate_t coord(row, col);
@@ -151,6 +151,41 @@ std::optional<player_color> board_t::wining_player() {
 
 	if(!king_coordinates(player_color::black).has_value()) {
 		return player_color::white;
+	}
+}
+
+bool board_t::is_check(){
+	//check if it is under check for the player_color of turn_color
+
+	//fake change color into the other color
+	if(turn_color == player_color::white){
+		turn_color = player_color::black;
+		std::vector<move_t> all_legal_moves = get_legal_moves();
+
+		for(move_t move : all_legal_moves){
+			if(move.destination == king_coordinates(player_color::white)){
+				return true;
+			}
+		}
+
+		return false;
+	
+		turn_color = player_color::white;
+	}
+	else
+	{
+		turn_color = player_color::white;
+		std::vector<move_t> all_legal_moves = get_legal_moves();
+
+		for(move_t move : all_legal_moves){
+			if(move.destination == king_coordinates(player_color::black)){
+				return true;
+			}
+		}
+
+		return false;
+
+		turn_color = player_color::black;
 	}
 }
 

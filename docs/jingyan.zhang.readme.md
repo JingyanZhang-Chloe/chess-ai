@@ -13,6 +13,9 @@ today i keep implement the gen_legal_move_fn for pawn, consider the case of doub
 
 today i finish to implement all the moves for pieces and test on if all the function for generating movements work as expected
 
+today i implement the function wining player in board_t to help our further check for minmax search. and i implememnt the function to check if the current player is in check. (is_check function)
+
+
 
 Meet 1: We got together in the TD session to kick things off. We set up the project environment and put together the CMakeLists.txt file to manage the build system. After that, we created a GitLab repository, set up our branches, and got familiar with committing and merging changes into the main branch. It was a productive start that laid the groundwork for working as a team.
 
