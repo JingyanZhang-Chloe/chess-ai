@@ -127,21 +127,31 @@ std::vector<move_t> board_t::get_legal_moves() const {
 	return legal_moves;
 };
 
-chess_coordinate_t board_t::king_coordinates(player_color color) const {
+std::optional<chess_coordinate_t> board_t::king_coordinates(player_color color) const {
 	for (int row = 0; row < 8; row++) {
 		for (int column = 0; column < 8; column++) {
 			std::optional<piece_t> piece = this->piece({ row, column });
 
 			if (piece.has_value()) {
 				if (piece.value().color == color
-						&& piece.value().kind == piece_kind::king) {
-					return { row, column };
+					&& piece.value().kind == piece_kind::king
+				) {
+					return chess_coordinate_t{ row, column };
 				}
 			}
 		}
 	}
+	//throw "[Board Error] Less than 2 kings on the board.";
+}
 
-	throw "[Board Error] Less than 2 kings on the board.";
+std::optional<player_color> board_t::wining_player() {
+	if(!king_coordinates(player_color::white).has_value()) {
+		return player_color::black;
+	}
+
+	if(!king_coordinates(player_color::black).has_value()) {
+		return player_color::white;
+	}
 }
 
 std::ostream& operator << (std::ostream& os, const board_t& board) {
