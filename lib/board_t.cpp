@@ -141,8 +141,9 @@ std::optional<chess_coordinate_t> board_t::king_coordinates(player_color color) 
 			}
 		}
 	}
-	//throw "[Board Error] Less than 2 kings on the board.";
-}
+
+	return std::nullopt;
+};
 
 std::optional<player_color> board_t::wining_player() {
 	if(!king_coordinates(player_color::white).has_value()) {
@@ -152,6 +153,8 @@ std::optional<player_color> board_t::wining_player() {
 	if(!king_coordinates(player_color::black).has_value()) {
 		return player_color::white;
 	}
+
+	return std::nullopt;
 }
 
 bool board_t::is_check(){
