@@ -527,5 +527,7 @@ std::vector<move_t> engine::gen_moves<piece_kind::king>(chess_coordinate_t coord
             re.push_back(move_t{coord, aim});
         };
     };
-}
+
+	return re;
+};
 

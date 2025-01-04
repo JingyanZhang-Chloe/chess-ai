@@ -190,6 +190,8 @@ bool board_t::is_check(){
 
 		turn_color = player_color::black;
 	}
+
+	return false;
 }
 
 std::ostream& operator << (std::ostream& os, const board_t& board) {
