@@ -8,10 +8,11 @@
 
 using namespace engine;
 
-board_t::castling_rights_t::castling_rights_t() : left_black{ false }, left_white{ false }, right_black{false}, right_white{false} {};
+// Reviewed
+board_t::castling_rights_t::castling_rights_t() : left_black{ false }, left_white{ false }, right_black{ false }, right_white{ false } {}
 
+// Reviewed, tested
 board_t::board_t() {
-
 	// Add pawns
 	for (int column = 0; column < 8; column++) {
 		this->piece({ 1, column }) = piece_t{ piece_kind::pawn, player_color::white };
@@ -46,16 +47,20 @@ board_t::board_t() {
 	// Add kings
 	this->piece({ 0, 4 }) = piece_t{ piece_kind::king, player_color::white };
 	this->piece({ 7, 4 }) = piece_t{ piece_kind::king, player_color::black };
-};
+}
 
+// Reviewed
 std::optional<piece_t>& board_t::piece(chess_coordinate_t coord) {
 	return this->pieces[coord.index()];
-};
+}
 
+// Reviewed
 const std::optional<piece_t>& board_t::piece(chess_coordinate_t coord) const {
 	return this->pieces[coord.index()];
-};
+}
 
+// Reviewed:
+// Possibly update game state here
 board_t& board_t::make_move(move_t move) {
 	// Push current state to history
 	board_t current = *this;
@@ -65,8 +70,9 @@ board_t& board_t::make_move(move_t move) {
 	this->piece(move.source) = std::nullopt;
 
 	return *this;
-};
+}
 
+// Reviewed
 board_t& board_t::unmake_latest_move() {
 	board_t previous = this->history.top();
 	this->history.pop();
@@ -74,59 +80,62 @@ board_t& board_t::unmake_latest_move() {
 	*this = previous;
 
 	return *this;
-};
+}
 
+// Reviewed:
+// Move out the massive switch into its own function
+// Remove inserts by having the gen functions directly inserting by reference
 std::vector<move_t> board_t::get_legal_moves() const { 
 	std::vector<move_t> legal_moves;
-	player_color turn = turn_color; //I change it to turn color :) //i just put this for now and i will change it when the board gives the color of the player turn
-	for(int row = 0; row < 8; row++){
-		for(int col = 0; col < 8; col++){
-			chess_coordinate_t coord(row, col);
+
+	for (int row = 0; row < 8; row++) {
+		for (int col = 0; col < 8; col++) {
+			chess_coordinate_t coord { row, col };
 			const auto& mb_piece = this->piece(coord);
-			if(mb_piece.has_value()==false){
-				continue;
-			}else{
+
+			if (mb_piece.has_value() && mb_piece.value().color == this->turn_color) {
 				piece_t p = mb_piece.value();
-				if(p.color == turn){
-					switch(p.kind){
-						case piece_kind::rook: {
-							auto rook_moves = gen_moves<engine::piece_kind::rook>(coord, turn, *this); 
-							legal_moves.insert(legal_moves.end(), rook_moves.begin(), rook_moves.end());
-                    		break;
-						}
-						case piece_kind::bishop: {
-							auto bishop_moves = gen_moves<engine::piece_kind::bishop>(coord, turn, *this);
-							legal_moves.insert(legal_moves.end(), bishop_moves.begin(), bishop_moves.end());
-                    		break;
-						}
-						case piece_kind::queen: {
-							auto queen_moves = gen_moves<engine::piece_kind::queen>(coord, turn, *this);
-							legal_moves.insert(legal_moves.end(), queen_moves.begin(), queen_moves.end());
-                    		break;
-						}
-						case piece_kind::knight: {
-							auto knight_moves = gen_moves<engine::piece_kind::knight>(coord, turn, *this);
-							legal_moves.insert(legal_moves.end(), knight_moves.begin(), knight_moves.end());
-                    		break;
-						}
-						case piece_kind::king: {
-							auto king_moves = gen_moves<engine::piece_kind::king>(coord, turn, *this);
-							legal_moves.insert(legal_moves.end(), king_moves.begin(), king_moves.end());
-                    		break;
-						}
-						case piece_kind::pawn: {
-							auto pawn_moves = gen_moves<engine::piece_kind::pawn>(coord, turn, *this);
-							legal_moves.insert(legal_moves.end(), pawn_moves.begin(), pawn_moves.end());
-                    		break;
-						}
-					}
+				std::vector<move_t> p_moves;
+
+				switch (p.kind) {
+				case piece_kind::rook:
+					p_moves = gen_moves<engine::piece_kind::rook>(coord, this->turn_color, *this);
+					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+					break;
+				
+				case piece_kind::bishop:
+					p_moves = gen_moves<engine::piece_kind::bishop>(coord, this->turn_color, *this);
+					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+					break;
+				
+				case piece_kind::queen: 
+					p_moves = gen_moves<engine::piece_kind::queen>(coord, this->turn_color, *this);
+					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+					break;
+				
+				case piece_kind::knight: 
+					p_moves = gen_moves<engine::piece_kind::knight>(coord, this->turn_color, *this);
+					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+					break;
+				
+				case piece_kind::king: 
+					p_moves = gen_moves<engine::piece_kind::king>(coord, this->turn_color, *this);
+					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+					break;
+				
+				case piece_kind::pawn:
+					p_moves = gen_moves<engine::piece_kind::pawn>(coord, this->turn_color, *this);
+					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+					break;
 				}
 			}
 		}
 	}
-	return legal_moves;
-};
 
+	return legal_moves;
+}
+
+// Reviewed
 std::optional<chess_coordinate_t> board_t::king_coordinates(player_color color) const {
 	for (int row = 0; row < 8; row++) {
 		for (int column = 0; column < 8; column++) {
@@ -143,8 +152,9 @@ std::optional<chess_coordinate_t> board_t::king_coordinates(player_color color) 
 	}
 
 	return std::nullopt;
-};
+}
 
+// Reviewed
 std::optional<player_color> board_t::wining_player() {
 	if(!king_coordinates(player_color::white).has_value()) {
 		return player_color::black;
@@ -194,6 +204,7 @@ bool board_t::is_check(){
 	return false;
 }
 
+// Reviewed, tested
 std::ostream& operator << (std::ostream& os, const board_t& board) {
 	os << "\n";
 
