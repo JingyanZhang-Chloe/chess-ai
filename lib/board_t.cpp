@@ -4,7 +4,7 @@
 #include <piece_t.h>
 #include <player_color.h>
 #include <piece_kind.h>
-#include "gen_move_fn.h"
+#include <gen_move_fn.h>
 
 using namespace engine;
 
@@ -167,40 +167,23 @@ std::optional<player_color> board_t::wining_player() {
 	return std::nullopt;
 }
 
+// Reviewed
 bool board_t::is_check(){
-	//check if it is under check for the player_color of turn_color
+	// Check if the player who played the previous turn has a move that targets the king
+	auto old_turn_color = this->turn_color;
+	this->turn_color = player_color_fn::opposite(this->turn_color);
 
-	//fake change color into the other color
-	if(turn_color == player_color::white){
-		turn_color = player_color::black;
-		std::vector<move_t> all_legal_moves = get_legal_moves();
-
-		for(move_t move : all_legal_moves){
-			if(move.destination == king_coordinates(player_color::white)){
-				return true;
-			}
-		}
-
-		return false;
+	std::vector<move_t> all_legal_moves = get_legal_moves();
 	
-		turn_color = player_color::white;
+	this->turn_color = old_turn_color;
+	std::optional<chess_coordinate_t> king_coord = this->king_coordinates(this->turn_color);
+	
+	if (!king_coord.has_value()) return false;
+
+	for (move_t move : all_legal_moves) {
+		if (move.destination == king_coord.value()) return true;
 	}
-	else
-	{
-		turn_color = player_color::white;
-		std::vector<move_t> all_legal_moves = get_legal_moves();
-
-		for(move_t move : all_legal_moves){
-			if(move.destination == king_coordinates(player_color::black)){
-				return true;
-			}
-		}
-
-		return false;
-
-		turn_color = player_color::black;
-	}
-
+	
 	return false;
 }
 
