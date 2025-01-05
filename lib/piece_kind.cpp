@@ -1,31 +1,18 @@
 #include <iostream>
-#include "include/piece_kind.h" 
+#include <piece_kind.h> 
 
 using namespace engine;
 
+// Reviewed
 std::ostream& operator<<(std::ostream& os, piece_kind piece_name){
-	switch (piece_name)
-	{
-	case piece_kind::pawn:
-		return os << "pawn";
-		break;
-	case piece_kind::knight:
-		return os << "knight";
-		break;
-	case piece_kind::bishop:
-		return os << "bishop";
-		break;
-	case piece_kind::rook:
-		return os << "rook";
-		break;
-	case piece_kind::queen:
-		return os << "queen";
-		break;
-	case piece_kind::king:
-		return os << "king";
-		break;
+	switch (piece_name) {
+	case piece_kind::pawn: return os << "pawn";
+	case piece_kind::knight: return os << "knight";
+	case piece_kind::bishop: return os << "bishop";
+	case piece_kind::rook: return os << "rook";
+	case piece_kind::queen: return os << "queen";
+	case piece_kind::king: return os << "king";
 	default:
-		throw "Error in printing the piece_kind";
-		break;
+		throw "Piece kind is not in the list [pawn, knight, bishop, rook, queen, king]";
 	}
 }
