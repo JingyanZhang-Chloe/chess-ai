@@ -264,3 +264,4 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	
 	return os;
 };
+
