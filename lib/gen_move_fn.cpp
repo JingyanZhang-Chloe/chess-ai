@@ -2,206 +2,110 @@
 
 using namespace engine;
 
+// Reviewed
+// Returns whether we should stop (blocked by a piece)
+bool add_if_empty_or_opponent(
+	chess_coordinate_t source,
+	chess_coordinate_t destination, 
+	player_color current_player, 
+	const board_t& board,
+	std::vector<move_t>& moves
+) {
+	auto piece = board.piece(destination);
+
+	if (piece.has_value()) {
+		if (piece.value().color != current_player) 
+			moves.push_back({ source, destination }); 
+
+		return false;
+	}
+	else {
+		moves.push_back({ source, destination });
+
+		return true;
+	}
+}
+
+// Reviewed
 template<>
-std::vector<move_t> engine::gen_moves<piece_kind::rook>(chess_coordinate_t coord, player_color color, const board_t& board) {
+std::vector<move_t> engine::gen_moves<piece_kind::rook>(
+	chess_coordinate_t source, player_color color, const board_t& board
+) {
     std::vector<move_t> re;
+	
+	// Loop right
+    for (int column = source.column() + 1; column < 8; column++) {
+        chess_coordinate_t destination { source.row(), column };
 
-    //loop through down column
-    for(int column = column + 1; column <= 7; ++column){
-        chess_coordinate_t pos {coord.row(), column};
-        if(board.piece(pos).has_value()){
-            if(board.piece(pos).value().color == color){
-                break;
-            }
-            else{
-                // it is a different color, EAT it!!
-                re.push_back(move_t{coord, pos});
-                //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                break;
-            };
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+    }
 
-        }
-        else{
-            re.push_back(move_t{coord, pos});
-        };
-    };
+    // Loop left
+    for (int column = source.column() - 1; column >= 0; column--) {
+        chess_coordinate_t destination { source.row(), column };
+		
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+    }
 
+    // Loop down
+    for (int row = source.row() - 1; row >= 0; row--) {
+        chess_coordinate_t destination { row, source.column() };
 
-    //loop through up column
-    for(int column = coord.column() - 1; column >= 0; --column){
-        chess_coordinate_t pos {coord.row(), column};
-        if(board.piece(pos).has_value()){
-            if(board.piece(pos).value().color == color){
-                break;
-            }
-            else{
-                // it is a different color, EAT it!!
-                re.push_back(move_t{coord, pos});
-                //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                break;
-            };
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+    }
 
-        }
-        else{
-            re.push_back(move_t{coord, pos});
-        };
-    };
+	// Loop up
+    for (int row = source.row() + 1; row < 8; row++) {
+        chess_coordinate_t destination { row, source.column() };
 
-    //loop through left row
-    for(int row = coord.row() - 1; row >= 0; --row){
-        chess_coordinate_t pos {row, coord.column()};
-        if(board.piece(pos).has_value()){
-            if(board.piece(pos).value().color == color){
-                break;
-            }
-            else{
-                // it is a different color, EAT it!!
-                re.push_back(move_t{coord, pos});
-                //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                break;
-            };
-
-        }
-        else{
-            re.push_back(move_t{coord, pos});
-        };
-    };
-
-    //loop through right row
-    for(int row = coord.row() + 1; row <= 7; ++row){
-        chess_coordinate_t pos {row, coord.column()};
-        if(board.piece(pos).has_value()){
-            if(board.piece(pos).value().color == color){
-                break;
-            }
-            else{
-                // it is a different color, EAT it!!
-                re.push_back(move_t{coord, pos});
-                //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                break;
-            };
-
-        }
-        else{
-            re.push_back(move_t{coord, pos});
-        };
-    };
-
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+    }
 
     return re;
-};
+}
 
-
+// Reviewed
 template<>
-std::vector<move_t> engine::gen_moves<piece_kind::bishop>(chess_coordinate_t coord, player_color color, const board_t& board){
-
+std::vector<move_t> engine::gen_moves<piece_kind::bishop>(
+	chess_coordinate_t source, player_color color, const board_t& board
+) {
     std::vector<move_t> re;
+	
+	// Loop south-west
+	for (int k = 1; source.row() - k >= 0 && source.column() - k >= 0; k++) {
+		chess_coordinate_t destination { source.row() - k, source.column() - k };
 
-    // the up left corner
-    for(int row = coord.row() - 1; row >= 0; --row){
-        for(int column = coord.column() - 1; column >= 0; --column){
-            if(abs(row - coord.row()) == abs(column - coord.column())){
-                chess_coordinate_t pos = chess_coordinate_t{row, column};
-                if(board.piece(pos).has_value()){
-                    if(board.piece(pos).value().color == color){
-                        break;
-                    }
-                    else{
-                    // it is a different color, EAT it!!
-                    re.push_back(move_t{coord, pos});
-                    //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                    break;
-                    };
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+	}
 
-                }
-                else{
-                    re.push_back(move_t{coord, pos});
-                };
-            };
-        };
-    };
+	// Loop north-west
+	for (int k = 1; source.row() + k < 8 && source.column() - k >= 0; k++) {
+		chess_coordinate_t destination { source.row() + k, source.column() - k };
 
-    // the up right corner
-    for(int row = coord.row() + 1; row <= 7; ++row){
-        for(int column = coord.column() - 1; column >= 0; --column){
-            if(abs(row - coord.row()) == abs(column - coord.column())){
-                chess_coordinate_t pos = chess_coordinate_t{row, column};
-                if(board.piece(pos).has_value()){
-                    if(board.piece(pos).value().color == color){
-                        break;
-                    }
-                    else{
-                    // it is a different color, EAT it!!
-                    re.push_back(move_t{coord, pos});
-                    //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                    break;
-                    };
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+	}
 
-                }
-                else{
-                    re.push_back(move_t{coord, pos});
-                };
-            };
-        };
-    };
+	// Loop south-east
+	for (int k = 1; source.row() - k >= 0 && source.column() + k < 8; k++) {
+		chess_coordinate_t destination { source.row() - k, source.column() + k };
 
-    // the down left corner
-    for(int row = coord.row() - 1; row >= 0; --row){
-        for(int column = coord.column() + 1; column <= 7; ++column){
-            if(abs(row - coord.row()) == abs(column - coord.column())){
-                chess_coordinate_t pos = chess_coordinate_t{row, column};
-                if(board.piece(pos).has_value()){
-                    if(board.piece(pos).value().color == color){
-                        break;
-                    }
-                    else{
-                    // it is a different color, EAT it!!
-                    re.push_back(move_t{coord, pos});
-                    //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                    break;
-                    };
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+	}
 
-                }
-                else{
-                    re.push_back(move_t{coord, pos});
-                };
-            };
-        };
-    };
+	// Loop north-east
+	for (int k = 1; source.row() + k < 8 && source.column() + k < 8; k++) {
+		chess_coordinate_t destination { source.row() + k, source.column() + k };
 
-    // the down right corner
-    for(int row = coord.row() + 1; row <= 7; ++row){
-        for(int column = coord.column() + 1; column <= 7; ++column){
-            if(abs(row - coord.row()) == abs(column - coord.column())){
-                chess_coordinate_t pos = chess_coordinate_t{row, column};
-                if(board.piece(pos).has_value()){
-                    if(board.piece(pos).value().color == color){
-                        break;
-                    }
-                    else{
-                    // it is a different color, EAT it!!
-                    re.push_back(move_t{coord, pos});
-                    //std::cout << "WE EAT YOUR " << board.piece(pos).value().kind << std::endl;
-                    break;
-                    };
-
-                }
-                else{
-                    re.push_back(move_t{coord, pos});
-                };
-            };
-        };
-    };
+		if (add_if_empty_or_opponent(source, destination, color, board, re)) break;
+	}
 
     return re;
-};
+}
 
-
+// Reviewed
 template<>
 std::vector<move_t> engine::gen_moves<piece_kind::queen>(chess_coordinate_t coord, player_color color, const board_t& board){
-
     std::vector v1 = gen_moves<piece_kind::bishop>(coord, color, board);
-
     std::vector v2 = gen_moves<piece_kind::rook>(coord, color, board);
 
     v1.insert(v1.end(), v2.begin(), v2.end());
@@ -209,7 +113,40 @@ std::vector<move_t> engine::gen_moves<piece_kind::queen>(chess_coordinate_t coor
     return v1;
 }
 
+std::vector<move_t> pawn_simple_captures(
+	chess_coordinate_t source, player_color color, const board_t& board
+) {
+	int y_direction = 1;
+	int promoting_row = 7;
 
+	if (color == player_color::black) {
+		y_direction = -1;
+		promoting_row = 0;
+	}
+	
+	std::vector<move_t> capturing_advances;
+	capturing_advances.reserve(2);
+
+	for (int dx : { -1, 1 }) {
+		chess_coordinate_t advance { source.row() + y_direction, source.column() + dx };
+		add_if_empty_or_opponent(source, advance, color, board, capturing_advances);
+	}
+
+	if (source.row() + y_direction == promoting_row) {
+		std::vector<move_t> re;
+		re.reserve(capturing_advances.size() * 4);
+
+		for (const move_t& move : capturing_advances) 
+		for (piece_kind promotion_code : { 
+			piece_kind::knight, piece_kind::bishop, 
+			piece_kind::rook, piece_kind::queen 
+		})
+			re.push_back({ move.source, move.destination, promotion_code });
+
+		return re;
+	}
+	else return capturing_advances;
+}
 
 //helper functions for the pawn
 std::vector<move_t> get_eat_move(chess_coordinate_t coord, player_color color, const board_t& board){
@@ -218,10 +155,11 @@ std::vector<move_t> get_eat_move(chess_coordinate_t coord, player_color color, c
 
     std::vector<move_t> re;
 
-    if(board.last_move.has_value() != true){
-        //this is the begining of the game, so there will be no last_move
-        return re;
-    };
+    //this is the begining of the game, so there will be no last_move
+    if (!board.last_move.has_value()) return re;
+
+	// simple captures
+	
 
     // for player of color white 
     if(color == player_color::white){
@@ -527,5 +465,7 @@ std::vector<move_t> engine::gen_moves<piece_kind::king>(chess_coordinate_t coord
             re.push_back(move_t{coord, aim});
         };
     };
-}
+
+	return re;
+};
 

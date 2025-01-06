@@ -29,11 +29,18 @@ class board_t {
 
 		std::vector<move_t> get_legal_moves() const;
 
-		chess_coordinate_t king_coordinates(player_color) const;
+		std::optional<chess_coordinate_t> king_coordinates(player_color) const;
 
 		std::optional<move_t> last_move;
 
 		castling_rights_t castling_rights;
+
+		std::optional<player_color> wining_player();
+
+		player_color turn_color;
+
+		bool is_check();
+		//this function check if the current player is in check
 
 	private:
 		std::optional<piece_t> pieces[64];
