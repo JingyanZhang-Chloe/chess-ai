@@ -418,6 +418,8 @@ bool is_valid(chess_coordinate_t aim, board_t board){
 
 template<>
 std::vector<move_t> engine::gen_moves<piece_kind::king>(chess_coordinate_t coord, player_color color, const board_t& board){
+    // the legal moves for king will not include any move that can cause in check
+
     std::vector<move_t> re;
 
 
@@ -428,11 +430,17 @@ std::vector<move_t> engine::gen_moves<piece_kind::king>(chess_coordinate_t coord
             if(coord != aim && is_valid(aim, board)){
                 if(board.piece(aim).has_value()){
                     if(board.piece(aim).value().color != color){
-                        re.push_back(move_t{coord, aim});
+
+                        if(!(board.is_in_check(color, aim))){
+                            re.push_back(move_t{coord, aim});
+                        }
+                        
                     };
                 }
                 else{
-                    re.push_back(move_t{coord, aim});
+                    if(!(board.is_in_check(color, aim))){
+                        re.push_back(move_t{coord, aim});
+                    }
                 };
             };
         };
