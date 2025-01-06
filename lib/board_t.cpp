@@ -8,9 +8,10 @@
 
 using namespace engine;
 
-board_t::castling_rights_t::castling_rights_t() : white{ true }, black{ true } {};
+board_t::castling_rights_t::castling_rights_t() : left_black{ false }, left_white{ false }, right_black{false}, right_white{false} {};
 
 board_t::board_t() {
+
 	// Add pawns
 	for (int column = 0; column < 8; column++) {
 		this->piece({ 1, column }) = piece_t{ piece_kind::pawn, player_color::white };

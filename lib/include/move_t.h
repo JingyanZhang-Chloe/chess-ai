@@ -14,9 +14,13 @@ struct move_t {
 
 	move_t(const std::string& move_spec);
 	move_t(chess_coordinate_t start, chess_coordinate_t end);
+	move_t(chess_coordinate_t start, chess_coordinate_t end, piece_kind);
+
+	bool operator == (const move_t& move) const;
 };
 
 };
 
 std::ostream& operator << (std::ostream& os, const engine::move_t& move);
+
 
