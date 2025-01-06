@@ -13,6 +13,7 @@ int main() {
 		}
 
 	std::vector<engine::move_t> legal_moves = board.get_legal_moves();
+	//here we will use the function search in search_t.h instead of legal_moves[0]//
 	std::ofstream asciiFile("next_move.txt"); // dont know what path to put yet
 	if(legal_moves.empty()){
 		std::cerr << "No possible legal moves" << std::endl;
