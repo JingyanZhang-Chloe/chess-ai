@@ -187,6 +187,27 @@ bool board_t::is_check(){
 	return false;
 }
 
+int board_t::eval(){
+	int my_score = 0;
+	int oppo_score = 0;
+
+	for(int row = 0; row <= 7; ++row){
+		for(int column = 0; column <= 7; ++ column){
+			if(this->piece({row, column}).has_value()){
+				if(this->piece({row, column}).value().color == turn_color){
+					my_score += 1;
+				}
+				else
+				{
+					oppo_score += 1;
+				}
+			}
+		}
+	}
+
+	return my_score - oppo_score;
+}
+
 // Reviewed, tested
 std::ostream& operator << (std::ostream& os, const board_t& board) {
 	os << "\n";
@@ -264,3 +285,5 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	
 	return os;
 };
+
+

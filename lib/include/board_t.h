@@ -42,6 +42,10 @@ class board_t {
 		bool is_check();
 		//this function check if the current player is in check
 
+		int eval();
+		//this function return the score for the player with the color of turn_color
+		
+
 	private:
 		std::optional<piece_t> pieces[64];
 		std::stack<board_t, std::vector<board_t>> history;
