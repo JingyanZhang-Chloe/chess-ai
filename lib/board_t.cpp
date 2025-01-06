@@ -66,8 +66,17 @@ board_t& board_t::make_move(move_t move) {
 	board_t current = *this;
 	this->history.push(current);
 	
-	this->piece(move.destination) = this->piece(move.source);
+	if (move.promotion_code.has_value())
+		this->piece(move.destination) = piece_t {
+			move.promotion_code.value(),
+			this->turn_color
+		};
+	else
+		this->piece(move.destination) = this->piece(move.source);
+
 	this->piece(move.source) = std::nullopt;
+
+	this->turn_color = player_color_fn::opposite(this->turn_color);
 
 	return *this;
 }
