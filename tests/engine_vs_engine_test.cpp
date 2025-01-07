@@ -30,7 +30,7 @@ int main() {
             return 1;
         }
 
-        piece_t piece = mb_piece.value();
+        engine::piece_t piece = mb_piece.value();
 
         for (const auto& m : legal_moves) {   //checking if the move is legal
             if (m == move) {
@@ -39,7 +39,7 @@ int main() {
             }
         }
 
-        if(found==false){
+        if(found == false){
             std::cerr<<"Engine tried to do an illegal move\n";
             return 1;
         }
