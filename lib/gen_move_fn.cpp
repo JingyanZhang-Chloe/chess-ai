@@ -104,7 +104,9 @@ std::vector<move_t> engine::gen_moves<piece_kind::bishop>(
 
 // Reviewed
 template<>
-std::vector<move_t> engine::gen_moves<piece_kind::queen>(chess_coordinate_t coord, player_color color, const board_t& board){
+std::vector<move_t> engine::gen_moves<piece_kind::queen>(
+	chess_coordinate_t coord, player_color color, const board_t& board
+) {
     std::vector v1 = gen_moves<piece_kind::bishop>(coord, color, board);
     std::vector v2 = gen_moves<piece_kind::rook>(coord, color, board);
 
@@ -113,6 +115,45 @@ std::vector<move_t> engine::gen_moves<piece_kind::queen>(chess_coordinate_t coor
     return v1;
 }
 
+std::vector<move_t> pawn_noncapturing_advances(
+	chess_coordinate_t source, player_color color, const board_t& board
+) {
+	std::vector<move_t> re;
+
+	int initial_row = 1;
+	int y_direction = 1;
+	int promoting_row = 7;
+
+	if (color == player_color::black) {
+		initial_row = 6;
+		y_direction = -1;
+		promoting_row = 0;
+	}
+	
+	int max_walk_distance = source.row() == initial_row ? 2 : 1;
+
+	for (int walk_distance = 1; walk_distance <= max_walk_distance; walk_distance++) {
+		chess_coordinate_t destination { 
+			source.row() + y_direction * walk_distance,
+			source.column()
+		};
+
+		if (board.piece(destination).has_value()) break;
+		
+		if (destination.row() == promoting_row)
+		for (piece_kind promotion_code : { 
+			piece_kind::knight, piece_kind::bishop, 
+			piece_kind::rook, piece_kind::queen 
+		}) 
+		re.push_back({ source, destination, promotion_code });
+		
+		else re.push_back({ source, destination });
+	}
+
+	return re;
+}
+
+// Reviewed
 std::vector<move_t> pawn_simple_captures(
 	chess_coordinate_t source, player_color color, const board_t& board
 ) {
@@ -148,6 +189,56 @@ std::vector<move_t> pawn_simple_captures(
 	else return capturing_advances;
 }
 
+std::vector<move_t> pawn_en_passant(
+	chess_coordinate_t source, player_color color, const board_t& board
+) {
+	int y_direction = 1;
+	int en_passant_row = 4;
+	
+	if (color == player_color::black) {
+		y_direction = -1;
+		en_passant_row = 3;
+	}
+
+	if (source.row() != en_passant_row) return {};
+	if (!board.last_move.has_value()) return {};
+
+	move_t last_move = board.last_move.value();
+
+	if (board.piece(last_move.destination).value().kind != piece_kind::pawn)
+		return {};
+
+	int walk_distance = (last_move.destination.row() - last_move.source.row()) 
+		* y_direction;
+	
+	if (walk_distance != 2) return {};
+
+	int column_displacement = source.column() - last_move.destination.column();
+	
+	if (column_displacement != 1 && column_displacement != -1) return {};
+
+	return {{{ 
+		source, 
+		{ last_move.destination.row() + y_direction, last_move.destination.column() }
+	}}};
+}
+
+template<>
+std::vector<move_t> engine::gen_moves<piece_kind::pawn>(
+	chess_coordinate_t coord, player_color color, const board_t& board
+) {
+	std::vector<move_t> v1 = pawn_noncapturing_advances(coord, color, board);
+	
+	std::vector<move_t> v2 = pawn_simple_captures(coord, color, board);
+	v1.insert(v1.end(), v2.begin(), v2.end());
+
+	std::vector<move_t> v3 = pawn_en_passant(coord, color, board);
+	v1.insert(v1.end(), v2.begin(), v2.end());
+
+	return v1;
+}
+
+/*
 //helper functions for the pawn
 std::vector<move_t> get_eat_move(chess_coordinate_t coord, player_color color, const board_t& board){
     // this function return an std::vector for every option move that a pawn can take to eat some other piece
@@ -330,7 +421,6 @@ std::vector<move_t> add_promo(move_t move, player_color color){
     };
 }
 
-
 template<>
 std::vector<move_t> engine::gen_moves<piece_kind::pawn>(chess_coordinate_t coord, player_color color, const board_t& board){
 
@@ -403,6 +493,7 @@ std::vector<move_t> engine::gen_moves<piece_kind::pawn>(chess_coordinate_t coord
     return re;
 
 }
+*/
 
 
 //helper function for the king 
@@ -418,6 +509,8 @@ bool is_valid(chess_coordinate_t aim, board_t board){
 
 template<>
 std::vector<move_t> engine::gen_moves<piece_kind::king>(chess_coordinate_t coord, player_color color, const board_t& board){
+    // the legal moves for king will not include any move that can cause in check
+
     std::vector<move_t> re;
 
 
@@ -428,11 +521,17 @@ std::vector<move_t> engine::gen_moves<piece_kind::king>(chess_coordinate_t coord
             if(coord != aim && is_valid(aim, board)){
                 if(board.piece(aim).has_value()){
                     if(board.piece(aim).value().color != color){
-                        re.push_back(move_t{coord, aim});
+
+                        if(!(board.is_in_check(color, aim))){
+                            re.push_back(move_t{coord, aim});
+                        }
+                        
                     };
                 }
                 else{
-                    re.push_back(move_t{coord, aim});
+                    if(!(board.is_in_check(color, aim))){
+                        re.push_back(move_t{coord, aim});
+                    }
                 };
             };
         };

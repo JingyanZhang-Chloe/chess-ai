@@ -7,6 +7,8 @@
 #include <vector>
 #include <optional>
 
+using namespace engine;
+
 int main() {
     engine::board_t board;
     int delai_for_move_allowed = 5000; // millieseconds
