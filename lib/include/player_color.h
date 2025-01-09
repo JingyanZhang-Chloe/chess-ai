@@ -4,7 +4,7 @@
 namespace engine {
 
 enum class player_color {
-	white, black
+	white=0, black=1
 };
 
 namespace player_color_fn {
