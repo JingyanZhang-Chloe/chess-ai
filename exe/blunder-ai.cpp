@@ -12,7 +12,7 @@ int main(int argc, char ** argv) {
 		board.make_move(move);
 		}
 
-	std::vector<engine::move_t> legal_moves = board.get_legal_moves();
+	std::vector<engine::move_t> legal_moves = board.legal_moves();
 	//here we will use the function search in search_t.h instead of legal_moves[0]//
 	std::ofstream asciiFile(argv[4]); // dont know what path to put yet
 	if(legal_moves.empty()){

@@ -59,6 +59,8 @@ board_t::board_t()
 
 // Reviewed
 board_t& board_t::make_move(move_t move) {
+	this->turns_since_capture_or_pawn_move++;
+
 	// Update castling-related information if rook or king is moving
 	if (this->piece(move.source).value().kind == piece_kind::king) {
 		if (this->_turn_color == player_color::white) {
@@ -87,6 +89,10 @@ board_t& board_t::make_move(move_t move) {
 		}
 	}
 
+	// Update 50-move-rule-related information
+	if (this->piece(move.source).value().kind == piece_kind::pawn)
+		this->turns_since_capture_or_pawn_move = 0;
+
 	// Update destination piece
 	// First handle the case where the king is castling
 	if (this->piece(move.source).value().kind == piece_kind::king
@@ -112,11 +118,14 @@ board_t& board_t::make_move(move_t move) {
 	}
 	// Finally, the case for a normal move
 	else {
-		if (this->piece(move.destination).has_value())
+		if (this->piece(move.destination).has_value()) {
 			this->_piece_count(
 				player_color_fn::opposite(this->_turn_color), 
 				this->piece(move.destination).value().kind
 			)--;
+
+			this->turns_since_capture_or_pawn_move = 0;
+		}
 
 		this->piece(move.destination) = this->piece(move.source);
 	}
@@ -124,13 +133,16 @@ board_t& board_t::make_move(move_t move) {
 	// Update source piece
 	this->piece(move.source) = std::nullopt;
 	
-	// Update game-state-related information (INCOMPLETE)
+	// Update game-state-related information
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
 	this->_latest_move = move;
 	
-	std::size_t current_has
-	if (this->position_count.contains(std::hash<board_t>{}(*this)))
-		this->position_count[std::hash<board_t>{}(*this)
+	std::size_t current_hash = std::hash<board_t>{}(*this);
+
+	if (this->position_count.contains(current_hash))
+		this->position_count[current_hash]++;
+	else
+		this->position_count.insert({ current_hash, 0 });
 
 	return *this;
 }

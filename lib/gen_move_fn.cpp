@@ -293,10 +293,10 @@ std::vector<move_t> engine::gen_moves<piece_kind::king>(
 	}
 
 	// Castling
-	if (board.can_castle(color, board_t::side::left))
+	if (board.can_castle(board_t::side::left))
 		re.push_back({ source, { color == player_color::white ? 0 : 7, 2 }});
 
-	if (board.can_castle(color, board_t::side::right))
+	if (board.can_castle(board_t::side::right))
 		re.push_back({ source, { color == player_color::white ? 0 : 7, 6 }});
 
 	return re;
