@@ -18,7 +18,7 @@ int main() {
     std::cout<< "Start test\n\n";
 
     for(int i = 1; i<=max_moves; i++){
-        std::vector<engine::move_t> legal_moves = board.get_legal_moves();
+        std::vector<engine::move_t> legal_moves = board.legal_moves();
         auto starting_time = std::chrono::steady_clock::now();    // mesuring time for the engine to output a move
         engine::move_t move = engine::get_best_move(board);
         auto ending_time = std::chrono::steady_clock::now();

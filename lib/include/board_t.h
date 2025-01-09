@@ -6,6 +6,7 @@
 #include <piece_t.h>
 #include <move_t.h>
 #include <chess_coordinate_t.h>
+#include <bitset>
 
 namespace engine {
 
@@ -49,6 +50,7 @@ public:
 	bool is_draw() const;
 
 	float score() const;
+	std::bitset<265> to_bitset() const;
 
 private:
 	std::optional<piece_t> pieces[64];
