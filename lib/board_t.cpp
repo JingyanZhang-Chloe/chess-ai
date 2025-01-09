@@ -1,5 +1,6 @@
 #include <iostream>
 #include <optional>
+#include <cmath>
 #include <board_t.h>
 #include <piece_t.h>
 #include <player_color.h>
@@ -8,16 +9,21 @@
 
 using namespace engine;
 
-// Reviewed
-board_t::castling_rights_t::castling_rights_t() : left_black{ false }, left_white{ false }, right_black{ false }, right_white{ false } {}
-
 // Reviewed, tested
-board_t::board_t() {
+board_t::board_t() 
+	: _turn_color { player_color::white }, 
+	white_king_or_left_rook_moved { false },
+	white_king_or_right_rook_moved { false },
+	black_king_or_left_rook_moved { false },
+	black_king_or_right_rook_moved { false },
+	__piece_count{{8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1}},
+	turns_since_capture_or_pawn_move{0}
+{
 	// Add pawns
 	for (int column = 0; column < 8; column++) {
 		this->piece({ 1, column }) = piece_t{ piece_kind::pawn, player_color::white };
 		this->piece({ 6, column }) = piece_t{ piece_kind::pawn, player_color::black };
-	};
+	}
 
 	// Add rooks
 	this->piece({ 0, 0 }) = piece_t{ piece_kind::rook, player_color::white };
@@ -47,6 +53,126 @@ board_t::board_t() {
 	// Add kings
 	this->piece({ 0, 4 }) = piece_t{ piece_kind::king, player_color::white };
 	this->piece({ 7, 4 }) = piece_t{ piece_kind::king, player_color::black };
+
+	this->position_count.insert({ std::hash<board_t>{}(*this), 1 });
+}
+
+// Reviewed
+board_t& board_t::make_move(move_t move) {
+	this->turns_since_capture_or_pawn_move++;
+
+	// Update castling-related information if rook or king is moving
+	if (this->piece(move.source).value().kind == piece_kind::king) {
+		if (this->_turn_color == player_color::white) {
+			this->white_king_or_left_rook_moved = true;
+			this->white_king_or_right_rook_moved = true;
+		}
+
+		else {
+			this->black_king_or_left_rook_moved = true;
+			this->black_king_or_right_rook_moved = true;
+		}
+	}
+
+	if (this->piece(move.source).value().kind == piece_kind::rook) {
+		if (this->_turn_color == player_color::white) {
+			if (move.source.column() == 0)
+				this->white_king_or_left_rook_moved = true;
+			else if (move.source.column() == 7)
+				this->white_king_or_right_rook_moved = true;
+		}
+		else {
+			if (move.source.column() == 0)
+				this->black_king_or_left_rook_moved = true;
+			else if (move.source.column() == 7)
+				this->black_king_or_right_rook_moved = true;
+		}
+	}
+
+	// Update 50-move-rule-related information
+	if (this->piece(move.source).value().kind == piece_kind::pawn)
+		this->turns_since_capture_or_pawn_move = 0;
+
+	// Update destination piece
+	// First handle the case where the king is castling
+	if (this->piece(move.source).value().kind == piece_kind::king
+		&& std::abs(move.destination.column() - move.source.column()) > 1) {
+		// We move the rook, the king movement gets handled normally after
+		int castle_direction = move.destination.column() - move.source.column();
+		int rook_column = castle_direction == 1 ? 7 : 0;
+		int new_rook_column = castle_direction == 1 ? 5 : 3;
+		
+		this->piece({ move.source.row(), rook_column }) = std::nullopt;
+		this->piece({ move.source.row(), new_rook_column }) 
+			= piece_t{ piece_kind::rook, this->_turn_color };
+	}
+	// Then handle the case for promotion
+	if (move.promotion_code.has_value()) {
+		this->_piece_count(this->_turn_color, move.promotion_code.value())++;
+		this->_piece_count(this->_turn_color, piece_kind::pawn)--;
+
+		this->piece(move.destination) = piece_t{
+			move.promotion_code.value(),
+			this->_turn_color
+		};
+	}
+	// Finally, the case for a normal move
+	else {
+		if (this->piece(move.destination).has_value()) {
+			this->_piece_count(
+				player_color_fn::opposite(this->_turn_color), 
+				this->piece(move.destination).value().kind
+			)--;
+
+			this->turns_since_capture_or_pawn_move = 0;
+		}
+
+		this->piece(move.destination) = this->piece(move.source);
+	}
+
+	// Update source piece
+	this->piece(move.source) = std::nullopt;
+	
+	// Update game-state-related information
+	this->_turn_color = player_color_fn::opposite(this->_turn_color);
+	this->_latest_move = move;
+	
+	std::size_t current_hash = std::hash<board_t>{}(*this);
+
+	if (this->position_count.contains(current_hash))
+		this->position_count[current_hash]++;
+	else
+		this->position_count.insert({ current_hash, 0 });
+
+	return *this;
+}
+
+// Reviewed:
+// Move out the massive switch into its own function
+// Remove inserts by having the gen functions directly inserting by reference
+std::vector<move_t> board_t::legal_moves() const { 
+	std::vector<move_t> legal_moves;
+
+	for (int row = 0; row < 8; row++) {
+		for (int col = 0; col < 8; col++) {
+			chess_coordinate_t coord { row, col };
+			const auto& mb_piece = this->piece(coord);
+
+			if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
+				piece_t p = mb_piece.value();
+
+				std::vector<move_t> p_moves = gen_moves(p.kind, coord, this->_turn_color, *this);
+				legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+			}
+		}
+	}
+
+	return legal_moves;
+}
+
+// Reviewed
+std::optional<move_t> board_t::latest_move() const {
+	return this->_latest_move;
 }
 
 // Reviewed
@@ -59,139 +185,51 @@ const std::optional<piece_t>& board_t::piece(chess_coordinate_t coord) const {
 	return this->pieces[coord.index()];
 }
 
-// Reviewed:
-// Possibly update game state here
-board_t& board_t::make_move(move_t move) {
-	// Push current state to history
-	board_t current = *this;
-	this->history.push(current);
-	
-	if (move.promotion_code.has_value())
-		this->piece(move.destination) = piece_t {
-			move.promotion_code.value(),
-			this->turn_color
-		};
-	else
-		this->piece(move.destination) = this->piece(move.source);
+bool board_t::is_attacked(chess_coordinate_t coord) const {
+	player_color opp_color = player_color_fn::opposite(this->_turn_color);
 
-	this->piece(move.source) = std::nullopt;
+	for (auto kind : { antipiece_kind::pawn, antipiece_kind::knight, 
+		antipiece_kind::bishop, antipiece_kind::rook, antipiece_kind::queen, 
+		antipiece_kind::king })
+	for (move_t move : gen_moves(kind, coord, opp_color, *this))
+	if (
+		this->piece(move.destination).has_value()
+		&& this->piece(move.destination).value().kind 
+			== piece_kind_fn::to_piece_kind(kind)
+	) return true;
 
-	this->turn_color = player_color_fn::opposite(this->turn_color);
-
-	return *this;
+	return false;
 }
 
 // Reviewed
-board_t& board_t::unmake_latest_move() {
-	board_t previous = this->history.top();
-	this->history.pop();
-
-	*this = previous;
-
-	return *this;
+int board_t::piece_count() const {
+	return this->piece_count(player_color::white) + this->piece_count(player_color::black);
 }
 
-// Reviewed:
-// Move out the massive switch into its own function
-// Remove inserts by having the gen functions directly inserting by reference
-std::vector<move_t> board_t::get_legal_moves() const { 
-	std::vector<move_t> legal_moves;
+// Reviewed
+int board_t::piece_count(player_color color) const {
+	int re = 0;
 
-	for (int row = 0; row < 8; row++) {
-		for (int col = 0; col < 8; col++) {
-			chess_coordinate_t coord { row, col };
-			const auto& mb_piece = this->piece(coord);
+	for (auto kind : { piece_kind::pawn, piece_kind::knight, piece_kind::bishop,
+		piece_kind::rook, piece_kind::queen, piece_kind::king })
+		re += this->piece_count(color, kind);
 
-			if (mb_piece.has_value() && mb_piece.value().color == this->turn_color) {
-				piece_t p = mb_piece.value();
-				std::vector<move_t> p_moves;
-
-				switch (p.kind) {
-				case piece_kind::rook:
-					p_moves = gen_moves<engine::piece_kind::rook>(coord, this->turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::bishop:
-					p_moves = gen_moves<engine::piece_kind::bishop>(coord, this->turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::queen: 
-					p_moves = gen_moves<engine::piece_kind::queen>(coord, this->turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::knight: 
-					p_moves = gen_moves<engine::piece_kind::knight>(coord, this->turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::king: 
-					p_moves = gen_moves<engine::piece_kind::king>(coord, this->turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::pawn:
-					p_moves = gen_moves<engine::piece_kind::pawn>(coord, this->turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				}
-			}
-		}
-	}
-
-	return legal_moves;
+	return re;
 }
 
-std::vector<move_t> board_t::get_legal_moves_for_color(player_color color) const {
-	std::vector<move_t> legal_moves;
+// Reviewed
+int board_t::piece_count(piece_kind kind) const {
+	int re = 0;
 
-	for (int row = 0; row < 8; row++) {
-		for (int col = 0; col < 8; col++) {
-			chess_coordinate_t coord { row, col };
-			const auto& mb_piece = this->piece(coord);
+	for (auto color: { player_color::white, player_color::black })
+		re += this->piece_count(color, kind);
 
-			if (mb_piece.has_value() && mb_piece.value().color == color) {
-				piece_t p = mb_piece.value();
-				std::vector<move_t> p_moves;
+	return re;
+}
 
-				switch (p.kind) {
-				case piece_kind::rook:
-					p_moves = gen_moves<engine::piece_kind::rook>(coord, color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::bishop:
-					p_moves = gen_moves<engine::piece_kind::bishop>(coord, color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::queen: 
-					p_moves = gen_moves<engine::piece_kind::queen>(coord, color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::knight: 
-					p_moves = gen_moves<engine::piece_kind::knight>(coord, color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::king: 
-					p_moves = gen_moves<engine::piece_kind::king>(coord, color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::pawn:
-					p_moves = gen_moves<engine::piece_kind::pawn>(coord, color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				}
-			}
-		}
-	}
-
-	return legal_moves;
+// Reviewed
+int board_t::piece_count(player_color color, piece_kind kind) const {
+	return this->_piece_count(color, kind);
 }
 
 // Reviewed
@@ -200,13 +238,9 @@ std::optional<chess_coordinate_t> board_t::king_coordinates(player_color color) 
 		for (int column = 0; column < 8; column++) {
 			std::optional<piece_t> piece = this->piece({ row, column });
 
-			if (piece.has_value()) {
-				if (piece.value().color == color
-					&& piece.value().kind == piece_kind::king
-				) {
-					return chess_coordinate_t{ row, column };
-				}
-			}
+			if (piece.has_value() && piece.value().color == color
+				&& piece.value().kind == piece_kind::king)
+				return chess_coordinate_t{ row, column };
 		}
 	}
 
@@ -214,7 +248,12 @@ std::optional<chess_coordinate_t> board_t::king_coordinates(player_color color) 
 }
 
 // Reviewed
-std::optional<player_color> board_t::wining_player() {
+player_color board_t::turn_color() const {
+	return this->_turn_color;
+}
+
+// Reviewed
+std::optional<player_color> board_t::winning_player() const {
 	if(!king_coordinates(player_color::white).has_value()) {
 		return player_color::black;
 	}
@@ -226,240 +265,121 @@ std::optional<player_color> board_t::wining_player() {
 	return std::nullopt;
 }
 
+bool board_t::can_castle(board_t::side side) const {
+	int castle_row;
+	bool king_or_rook_moved;
+
+	if (this->_turn_color == player_color::white) {
+		castle_row = 0;
+
+		if (side == board_t::side::left)
+			king_or_rook_moved = this->white_king_or_left_rook_moved;
+		else
+			king_or_rook_moved = this->white_king_or_right_rook_moved;
+	}
+	else {
+		castle_row = 7;
+
+		if (side == board_t::side::left)
+			king_or_rook_moved = this->black_king_or_left_rook_moved;
+		else
+			king_or_rook_moved = this->black_king_or_right_rook_moved;
+	}
+
+	if (king_or_rook_moved) return false;
+	
+	if (this->is_check()) return false;
+
+	// We check if all pieces between the king and the rook are empty
+	// Then we check if the the king will castle through check
+	if (side == board_t::side::left) {
+		for (int column = 3; column >= 1; column--)
+		if (this->piece({ castle_row, column }).has_value()) return false;
+
+		for (int column = 3; column >= 2; column--)
+		if (this->is_attacked({ castle_row, column })) return false;
+	}
+	else {
+		for (int column = 5; column <= 6; column++)
+		if (this->piece({ castle_row, column }).has_value()) return false;
+
+		for (int column = 5; column <= 6; column++)
+		if (this->is_attacked({ castle_row, column })) return false;
+	}
+
+	return true;
+}
+
 // Reviewed
-bool board_t::is_check(){
-	// Check if the player who played the previous turn has a move that targets the king
-	auto old_turn_color = this->turn_color;
-	this->turn_color = player_color_fn::opposite(this->turn_color);
+bool board_t::is_check() const {
+	std::optional<chess_coordinate_t> king_coords = 
+		this->king_coordinates(this->turn_color());
+	
+	return king_coords.has_value() && this->is_attacked(king_coords.value());
+}
 
-	std::vector<move_t> all_legal_moves = get_legal_moves();
-	
-	this->turn_color = old_turn_color;
-	std::optional<chess_coordinate_t> king_coord = this->king_coordinates(this->turn_color);
-	
-	if (!king_coord.has_value()) return false;
+// TODO:  Serious optimization needed here
+bool board_t::is_draw() const {
+	// Case 1 : Stalemate
+	if (this->legal_moves().size() == 0) return true;
 
-	for (move_t move : all_legal_moves) {
-		if (move.destination == king_coord.value()) return true;
-	}
+	int __piece_count = this->piece_count();
+	// Case 2 : Dead Position
+	// King vs. King: Only two kings are left
+	if (__piece_count == this->piece_count(piece_kind::king)) return true;
 	
+	//King and Bishop vs. King: A king with one bishop cannot checkmate
+	if (__piece_count == 3
+		&& this->piece_count(piece_kind::king) == 2
+		&& this->piece_count(piece_kind::bishop) == 1
+	) return true;
+
+	//King and Knight vs. King: A king with one knight cannot checkmate
+	if (__piece_count == 3
+		&& this->piece_count(piece_kind::king) == 2
+		&& this->piece_count(piece_kind::bishop) == 1
+	) return true;
+
+	// Case 3 : Threefold Repetition
+	std::size_t current_hash = std::hash<board_t>{}(*this);
+
+	if (this->position_count.contains(current_hash)
+		&& this->position_count.at(current_hash) >= 3) return true;
+
+	// Case 4 : 50-Move Rule
+	if (this->turns_since_capture_or_pawn_move >= 50) return true;
+
 	return false;
 }
 
-int board_t::count_piece(piece_kind K){
-	int re = 0;
-
-	for(int row = 0; row <= 7; ++ row){
-		for(int column = 0; column <= 7; ++column){
-			if(this->piece({row, column}).has_value()){
-				if(this->piece({row, column}).value().kind == K){
-					re += 1;
-				}
-			}
-		}
-	}
-}
-
-int board_t::count_piece(piece_kind K, player_color color){
-	int re = 0;
-
-	for(int row = 0; row <= 7; ++ row){
-		for(int column = 0; column <= 7; ++column){
-			if(this->piece({row, column}).has_value()){
-				if(this->piece({row, column}).value().kind == K && this->piece({row, column}).value().color == color){
-					re += 1;
-				}
-			}
-		}
-	}
-}
-
-std::vector<piece_t> board_t::get_all_pieces(){
-	std::vector<piece_t> re;
-
-	for(int row = 0; row <= 7; ++row){
-		for(int column = 0; column <= 7; ++column){
-			if(this->piece({row, column}).has_value()){
-				re.push_back(this->piece({row, column}).value());
-			}
-		}
-	}
-}
-
-std::vector<move_t> board_t::gen_legal_moves_for_pawn(){
-	std::vector<move_t> re;
-
-	for(int row = 0; row <= 7; ++row){
-		for(int column = 0; column <= 7; ++column){
-			if(piece({row, column}).has_value()){
-				if(piece({row, column}).value().kind == piece_kind::pawn){
-
-					auto vector_ = gen_moves<piece_kind::pawn>({row, column}, piece({row, column}).value().color, *this);
-					re.insert(re.end(), vector_.begin(), vector_.end());
-				}
-			}
-		}
-	}
-}
-
-bool board_t::is_in_check(player_color color, chess_coordinate_t king_coord) const {
-	player_color turn_color = player_color_fn::opposite(color);
-
-	std::vector<move_t> legal_moves;
-
-	// no consider king moves
-	for (int row = 0; row < 8; row++) {
-		for (int col = 0; col < 8; col++) {
-			chess_coordinate_t coord { row, col };
-			const auto& mb_piece = this->piece(coord);
-
-			if (mb_piece.has_value() && mb_piece.value().color == turn_color) {
-				piece_t p = mb_piece.value();
-				std::vector<move_t> p_moves;
-
-				switch (p.kind) {
-				case piece_kind::rook:
-					p_moves = gen_moves<engine::piece_kind::rook>(coord, turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::bishop:
-					p_moves = gen_moves<engine::piece_kind::bishop>(coord, turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::queen: 
-					p_moves = gen_moves<engine::piece_kind::queen>(coord, turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::knight: 
-					p_moves = gen_moves<engine::piece_kind::knight>(coord, turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				
-				case piece_kind::pawn:
-					p_moves = gen_moves<engine::piece_kind::pawn>(coord, turn_color, *this);
-					legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
-					break;
-				}
-			}
-		}
-	};
-
-	for (move_t move : legal_moves) {
-		if (move.destination == king_coord) return true;
-	}
-	
-	return false;
-}
-
-bool board_t::is_draw(){
-
-	//case 1 : Stalemate
-
-		//for white
-
-		if(get_legal_moves_for_color(player_color::white).empty() && !(is_in_check(player_color::white, this->king_coordinates(player_color::white).value()))){
-			return true;
-		}
-
-		//for black
-		if(get_legal_moves_for_color(player_color::black).empty() && !(is_in_check(player_color::black, this->king_coordinates(player_color::black).value()))){
-			return true;
-		};
-
-	//case 2 : Dead Position
-
-		//King vs. King: Only two kings are left
-		if(get_all_pieces().size() == 2){
-			return true;
-		}
-
-		//King and Bishop vs. King: A king with one bishop cannot checkmate
-		if(get_all_pieces().size() == 3){
-			if(count_piece(piece_kind::king) == 2 && count_piece(piece_kind::bishop) == 1){
-				return true;
-			}
-		}
-
-		//King and Knight vs. King: A king with one knight cannot checkmate
-		if(get_all_pieces().size() == 3){
-			if(count_piece(piece_kind::king) == 2 && count_piece(piece_kind::knight) == 1){
-				return true;
-			}
-		}
-
-		//King and Two Knights vs. King: Two knights cannot force a checkmate without help from the opponent
-		if(get_all_pieces().size() == 4){
-			if(count_piece(piece_kind::king) == 2 && count_piece(piece_kind::knight) == 2){
-				if(count_piece(piece_kind::knight, player_color::white) == 0 || count_piece(piece_kind::knight, player_color::black) == 0){
-					return true;
-				}
-			}
-		}
-
-		//Blocked Pawns (Unstoppable Draw)
-		if(gen_legal_moves_for_pawn().size() == 0){
-			//King vs. King: Only two kings are left
-			if(get_all_pieces().size() == count_piece(piece_kind::pawn) + 2){
-				return true;
-			}
-
-			//King and Bishop vs. King: A king with one bishop cannot checkmate
-			if(get_all_pieces().size() == count_piece(piece_kind::pawn) + 3){
-				if(count_piece(piece_kind::king) == 2 && count_piece(piece_kind::bishop) == 1){
-					return true;
-				}
-			}
-
-			//King and Knight vs. King: A king with one knight cannot checkmate
-			if(get_all_pieces().size() == count_piece(piece_kind::pawn) + 3){
-				if(count_piece(piece_kind::king) == 2 && count_piece(piece_kind::knight) == 1){
-					return true;
-				}
-			}
-
-			//King and Two Knights vs. King: Two knights cannot force a checkmate without help from the opponent
-			if(get_all_pieces().size() == count_piece(piece_kind::pawn) + 4){
-				if(count_piece(piece_kind::king) == 2 && count_piece(piece_kind::knight) == 2){
-					if(count_piece(piece_kind::knight, player_color::white) == 0 || count_piece(piece_kind::knight, player_color::black) == 0){
-						return true;
-					}
-				}
-			}
-		}
-
-
-	// case 3 Threefold Repetition
-		//in this case, the player who do the Threefold Repetition has the right to require a draw, it's not madatory
-
-	// case 4 50-Move Rule
-		//also, this is not madatory
-
-
-
-}
-
-int board_t::eval(){
-	int my_score = 0;
-	int oppo_score = 0;
-
-	for(int row = 0; row <= 7; ++row){
-		for(int column = 0; column <= 7; ++ column){
-			if(this->piece({row, column}).has_value()){
-				if(this->piece({row, column}).value().color == turn_color){
-					my_score += 1;
-				}
-				else
-				{
-					oppo_score += 1;
-				}
-			}
-		}
+float board_t::score() const {
+	std::optional<player_color> _winning_player = this->winning_player();
+	if (_winning_player.has_value()) {
+		if (_winning_player.value() == this->turn_color())
+			return std::numeric_limits<float>::infinity();
+		else
+			return -std::numeric_limits<float>::infinity();
 	}
 
-	return my_score - oppo_score;
+	if (this->is_draw()) return 0;
+
+	float score = 0;
+	for (auto kind : { piece_kind::pawn, piece_kind::knight, piece_kind::bishop,
+		piece_kind::rook, piece_kind::queen })
+		score += piece_kind_fn::get_score(kind) * (
+			this->piece_count(player_color::white, kind)
+			- this->piece_count(player_color::black, kind)
+		);
+
+	return score;
+}
+
+int& board_t::_piece_count(player_color color, piece_kind kind) {
+	return this->__piece_count[static_cast<int>(color) * 6 + static_cast<int>(kind)];
+}
+
+const int& board_t::_piece_count(player_color color, piece_kind kind) const {
+	return this->__piece_count[static_cast<int>(color) * 6 + static_cast<int>(kind)];
 }
 
 // Reviewed, tested
@@ -539,5 +459,3 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	
 	return os;
 };
-
-
