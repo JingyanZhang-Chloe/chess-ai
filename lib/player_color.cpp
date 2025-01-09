@@ -5,7 +5,7 @@ using namespace engine;
 using namespace player_color_fn;
 
 // Reviewed
-player_color opposite(player_color col) {
+player_color player_color_fn::opposite(player_color col) {
 	switch (col) {
 	case player_color::white: return player_color::black;
 	case player_color::black: return player_color::white;

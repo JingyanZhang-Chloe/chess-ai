@@ -318,6 +318,13 @@ std::vector<move_t> engine::gen_moves<antipiece_kind::bishop>(
 	return gen_moves<piece_kind::bishop>(source, player_color_fn::opposite(color), board);
 }
 
+template<>
+std::vector<move_t> engine::gen_moves<antipiece_kind::queen>(
+	chess_coordinate_t source, player_color color, const board_t& board
+) {
+	return gen_moves<piece_kind::queen>(source, player_color_fn::opposite(color), board);
+}
+
 // Reviewed
 template<>
 std::vector<move_t> engine::gen_moves<antipiece_kind::knight>(

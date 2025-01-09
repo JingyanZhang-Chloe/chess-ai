@@ -11,27 +11,27 @@ template<piece_kind kind>
 class piece_kind_info;
 
 template<>
-class piece_kind_info<piece_kind::pawn> {
+struct piece_kind_info<piece_kind::pawn> {
 	static constexpr float value = 0.9;
 };
 
 template<>
-class piece_kind_info<piece_kind::knight> {
+struct piece_kind_info<piece_kind::knight> {
 	static constexpr float value = 3.2;
 };
 
 template<>
-class piece_kind_info<piece_kind::bishop> {
+struct piece_kind_info<piece_kind::bishop> {
 	static constexpr float value = 3.3;
 };
 
 template<>
-class piece_kind_info<piece_kind::rook> {
+struct piece_kind_info<piece_kind::rook> {
 	static constexpr float value = 4.9;
 };
 
 template<>
-class piece_kind_info<piece_kind::queen> {
+struct piece_kind_info<piece_kind::queen> {
 	static constexpr float value = 9.1;
 };
 
