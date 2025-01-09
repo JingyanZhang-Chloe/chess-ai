@@ -7,6 +7,7 @@
 #include <piece_kind.h>
 #include <gen_move_fn.h>
 
+
 using namespace engine;
 
 // Reviewed, tested
@@ -459,3 +460,61 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	
 	return os;
 };
+
+
+
+std::bitset<265> board_t::to_bitset() const {   //do not consider en passant state
+	std::bitset<265> key;
+	std::size_t bit = 0;
+	for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+			chess_coordinate_t coord { row, col };
+			const auto& mb_piece = this->piece(coord);
+			if (mb_piece.has_value()) {
+				piece_t current_piece = mb_piece.value();
+				int color_hash;
+				int piece_kind_hash = 0;
+				if (current_piece.color == player_color::white) {
+    				color_hash = 0;
+				} else {
+    				color_hash = 6;
+				}
+				switch(current_piece.kind) {
+					case piece_kind::pawn:
+						piece_kind_hash = 1; 
+						break;
+                    case piece_kind::knight:
+						piece_kind_hash = 2; 
+						break;
+                    case piece_kind::bishop: 
+						piece_kind_hash = 3; 
+						break;
+                    case piece_kind::rook:   
+						piece_kind_hash = 4; 
+						break;
+                    case piece_kind::queen:  
+						piece_kind_hash = 5; 
+						break;
+                    case piece_kind::king:   
+						piece_kind_hash = 6; 
+						break;
+				}
+				int piece_hash = piece_kind_hash + color_hash;
+				key.set(bit + piece_hash);
+				for (int b = 0; b < 4; ++b) {
+                	key.set(bit + b, (piece_hash >> b) & 1);
+            	}
+			}
+			else{
+				key.set(bit + 0);
+			}
+			bit += 4;
+		}
+	}
+	key.set(bit++, this->white_king_or_left_rook_moved);
+    key.set(bit++, this->white_king_or_right_rook_moved);
+    key.set(bit++, this->black_king_or_left_rook_moved);
+    key.set(bit++, this->black_king_or_right_rook_moved);
+	key.set(bit++, this->_turn_color == player_color::white);
+	return key;
+}
