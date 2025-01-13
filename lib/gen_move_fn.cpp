@@ -27,12 +27,12 @@ bool add_if_empty_or_opponent(
 		if (piece.value().color != current_player) 
 			moves.push_back({ source, destination }); 
 
-		return false;
+		return true;
 	}
 	else {
 		moves.push_back({ source, destination });
 
-		return true;
+		return false;
 	}
 }
 

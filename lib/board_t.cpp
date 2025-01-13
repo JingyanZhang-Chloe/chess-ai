@@ -59,7 +59,10 @@ board_t::board_t()
 }
 
 // Reviewed
-board_t& board_t::make_move(move_t move) {
+move_info_t board_t::make_move(move_t move) {
+
+	move_info_t info = get_move_info(move);
+
 	this->turns_since_capture_or_pawn_move++;
 
 	// Update castling-related information if rook or king is moving
@@ -142,10 +145,10 @@ board_t& board_t::make_move(move_t move) {
 
 	if (this->position_count.contains(current_hash))
 		this->position_count[current_hash]++;
-	else
+	else 
 		this->position_count.insert({ current_hash, 0 });
 
-	return *this;
+	return info;
 }
 
 // Reviewed:
@@ -461,8 +464,6 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	return os;
 };
 
-
-
 std::bitset<265> board_t::to_bitset() const {   //do not consider en passant state
 	std::bitset<265> key;
 	std::size_t bit = 0;
@@ -517,4 +518,23 @@ std::bitset<265> board_t::to_bitset() const {   //do not consider en passant sta
     key.set(bit++, this->black_king_or_right_rook_moved);
 	key.set(bit++, this->_turn_color == player_color::white);
 	return key;
+}
+
+
+move_info_t board_t::get_move_info(move_t move){
+	// the board now is in the state of before the move
+	move_info_t info { move, this->white_king_or_left_rook_moved, this->white_king_or_right_rook_moved, this->black_king_or_left_rook_moved, this->black_king_or_right_rook_moved, this->turns_since_capture_or_pawn_move };
+	info.last_move = this->latest_move();
+
+	info.eaten_piece = this->piece(move.destination);
+
+}
+
+void board_t::unmake_move(move_info_t info){
+	this->latest_move() = info.last_move;
+	this->white_king_or_left_rook_moved = info.white_king_or_left_rook_moved;
+	this->white_king_or_right_rook_moved = info.white_king_or_right_rook_moved;
+	this->black_king_or_left_rook_moved = info.black_king_or_left_rook_moved;
+	this->black_king_or_right_rook_moved = info.black_king_or_right_rook_moved;
+	this->turns_since_capture_or_pawn_move = info.turns_since_capture_or_pawn_move;
 }

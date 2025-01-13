@@ -11,13 +11,14 @@ using namespace engine;
 
 int main() {
     engine::board_t board;
-    int delai_for_move_allowed = 5000; // millieseconds
+    int delai_for_move_allowed = 10000; // millieseconds
     int max_moves = 80; // 40 is the average number of full move during a chess game (20 each)
     bool found = false; // to check if the move is legal
 
     std::cout<< "Start test\n\n";
 
     for(int i = 1; i<=max_moves; i++){
+        std::cout << board;
         std::vector<engine::move_t> legal_moves = board.legal_moves();
         auto starting_time = std::chrono::steady_clock::now();    // mesuring time for the engine to output a move
         engine::move_t move = legal_moves[0];   // needs to be changed by our search
@@ -48,9 +49,9 @@ int main() {
             std::cerr<< "The move" << i << "took more than 5 seconds\n";
             return 1;
         }
-
+        board.make_move(move);
         std::cout << "Move " << i << ": " << move << "\n, piece: " << piece.kind<< ",\n color: " << piece.color << ",\n took " << total_time_for_move << "ms" << std::endl;
-        
+    
     }
     return 0;
 }
