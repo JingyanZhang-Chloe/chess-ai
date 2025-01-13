@@ -464,7 +464,6 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	return os;
 };
 
-<<<<<<< Updated upstream
 std::bitset<265> board_t::to_bitset() const {   //do not consider en passant state
 	std::bitset<265> key;
 	std::size_t bit = 0;
