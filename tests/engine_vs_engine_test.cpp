@@ -20,7 +20,7 @@ int main() {
     for(int i = 1; i<=max_moves; i++){
         std::vector<engine::move_t> legal_moves = board.legal_moves();
         auto starting_time = std::chrono::steady_clock::now();    // mesuring time for the engine to output a move
-        engine::move_t move = engine::get_best_move(board);
+        engine::move_t move = legal_moves[0];   // needs to be changed by our search
         auto ending_time = std::chrono::steady_clock::now();
         auto total_time_for_move = std::chrono::duration_cast<std::chrono::milliseconds>(ending_time - starting_time).count();
 
