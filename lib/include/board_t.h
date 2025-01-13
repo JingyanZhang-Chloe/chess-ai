@@ -7,6 +7,7 @@
 #include <move_t.h>
 #include <chess_coordinate_t.h>
 #include <bitset>
+#include <move_info_t.h>
 
 namespace engine {
 
@@ -17,7 +18,8 @@ public:
 	//=======================
 	// Move-related functions
 	//=======================
-	board_t& make_move(move_t);
+	move_info_t make_move(move_t);
+	void unmake_move(move_info_t);
 
 	std::vector<move_t> legal_moves() const;
 	std::optional<move_t> latest_move() const;	
@@ -72,6 +74,15 @@ private:
 	std::unordered_map<hash_t, int> position_count;
 
 	int turns_since_capture_or_pawn_move;
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+
+	move_info_t get_move_info(move_t);
+};
+>>>>>>> Stashed changes
 
 };
 
