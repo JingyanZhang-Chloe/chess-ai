@@ -67,17 +67,14 @@ private:
 	int& _piece_count(player_color, piece_kind);
 	const int& _piece_count(player_color, piece_kind) const;
 
-	std::unordered_map<std::size_t, int> position_count;
+	using hash_t = std::bitset<265>;
+
+	std::unordered_map<hash_t, int> position_count;
 
 	int turns_since_capture_or_pawn_move;
-};
 
 };
 
-// We ensure the hash function is injective
-template<>
-struct std::hash<engine::board_t> {
-	std::size_t operator()(const engine::board_t&) const noexcept;
 };
 
 std::ostream& operator << (std::ostream&, const engine::board_t&);

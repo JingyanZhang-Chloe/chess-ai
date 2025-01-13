@@ -55,7 +55,7 @@ board_t::board_t()
 	this->piece({ 0, 4 }) = piece_t{ piece_kind::king, player_color::white };
 	this->piece({ 7, 4 }) = piece_t{ piece_kind::king, player_color::black };
 
-	this->position_count.insert({ std::hash<board_t>{}(*this), 1 });
+	this->position_count.insert({ this->to_bitset(), 1 });
 }
 
 // Reviewed
@@ -138,7 +138,7 @@ board_t& board_t::make_move(move_t move) {
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
 	this->_latest_move = move;
 	
-	std::size_t current_hash = std::hash<board_t>{}(*this);
+	hash_t current_hash = this->to_bitset();
 
 	if (this->position_count.contains(current_hash))
 		this->position_count[current_hash]++;
@@ -342,7 +342,7 @@ bool board_t::is_draw() const {
 	) return true;
 
 	// Case 3 : Threefold Repetition
-	std::size_t current_hash = std::hash<board_t>{}(*this);
+	hash_t current_hash = this->to_bitset();
 
 	if (this->position_count.contains(current_hash)
 		&& this->position_count.at(current_hash) >= 3) return true;
