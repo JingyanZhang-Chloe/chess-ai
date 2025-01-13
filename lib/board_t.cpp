@@ -63,12 +63,14 @@ board_t::board_t()
 board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}} {
 	std::array<std::string, 6> fen_fields;
 	
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 5; i++) {
 		std::size_t delim_index = fen_string.find(" ");
 		
 		fen_fields[i] = fen_string.substr(0, delim_index);
 		fen_string.erase(0, delim_index + 1);
 	}
+
+	fen_fields[5] = fen_string;
 
 	// We use the first field to fill the pieces in the board
 	int current_coordinate = 0;
