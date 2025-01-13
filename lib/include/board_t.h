@@ -74,18 +74,9 @@ private:
 	std::unordered_map<hash_t, int> position_count;
 
 	int turns_since_capture_or_pawn_move;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
 	move_info_t get_move_info(move_t);
 };
->>>>>>> Stashed changes
 
 };
 

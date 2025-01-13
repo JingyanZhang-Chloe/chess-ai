@@ -464,6 +464,7 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	return os;
 };
 
+<<<<<<< Updated upstream
 
 
 std::bitset<265> board_t::to_bitset() const {   //do not consider en passant state
@@ -521,6 +522,8 @@ std::bitset<265> board_t::to_bitset() const {   //do not consider en passant sta
 	key.set(bit++, this->_turn_color == player_color::white);
 	return key;
 }
+=======
+>>>>>>> Stashed changes
 move_info_t board_t::get_move_info(move_t move){
 	// the board now is in the state of before the move
 	move_info_t info { move, this->white_king_or_left_rook_moved, this->white_king_or_right_rook_moved, this->black_king_or_left_rook_moved, this->black_king_or_right_rook_moved, this->turns_since_capture_or_pawn_move };
