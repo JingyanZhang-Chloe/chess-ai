@@ -47,7 +47,7 @@ int8_t chess_coordinate_t::column() {
 char chess_coordinate_t::column_as_char() {
 	int col = this->column();
 
-	return static_cast<char>(static_cast<int>('A') + col);
+	return static_cast<char>(static_cast<int>('a') + col);
 }
 
 // Reviewed

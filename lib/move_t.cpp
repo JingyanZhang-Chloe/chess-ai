@@ -65,10 +65,10 @@ move_t::move_t(chess_coordinate_t start, chess_coordinate_t end, piece_kind k) :
 
 std::ostream& operator << (std::ostream& os, const move_t& move){
     if(move.promotion_code.has_value()){
-        return os << "From: " << move.source << " To: " << move.destination << " With promotion code: " << move.promotion_code.value();
+        return os <<  move.source << move.destination  << move.promotion_code.value();
     }
     else{
-        return os << "From: " << move.source << " To: " << move.destination;
+        return os << move.source << move.destination;
     }
 }
 
