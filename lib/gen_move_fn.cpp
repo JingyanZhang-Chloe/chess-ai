@@ -204,7 +204,12 @@ std::vector<move_t> pawn_simple_captures(
 
 		if (0 <= new_column && new_column < 8) {
 			chess_coordinate_t advance { source.row() + y_direction, new_column };
-			add_if_empty_or_opponent(source, advance, color, board, capturing_advances);
+			
+			std::optional<piece_t> dest_piece = board.piece(advance);
+
+			if (dest_piece.has_value() && dest_piece.value().color 
+				== player_color_fn::opposite(color))
+				capturing_advances.push_back({ source, advance });
 		}
 	}
 

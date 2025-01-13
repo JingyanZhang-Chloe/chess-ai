@@ -60,7 +60,6 @@ board_t::board_t()
 
 // Reviewed
 move_info_t board_t::make_move(move_t move) {
-
 	move_info_t info = get_move_info(move);
 
 	this->turns_since_capture_or_pawn_move++;
@@ -141,7 +140,7 @@ move_info_t board_t::make_move(move_t move) {
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
 	this->_latest_move = move;
 	
-	hash_t current_hash = this->to_bitset();
+	board_t::hash_t current_hash = this->to_bitset();
 
 	if (this->position_count.contains(current_hash))
 		this->position_count[current_hash]++;
@@ -527,7 +526,8 @@ move_info_t board_t::get_move_info(move_t move){
 	info.last_move = this->latest_move();
 
 	info.eaten_piece = this->piece(move.destination);
-
+	
+	return info;
 }
 
 void board_t::unmake_move(move_info_t info){

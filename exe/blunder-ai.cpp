@@ -4,21 +4,24 @@
 #include <fstream>
 #include <move_t.h>
 
-int main(int argc, char ** argv) {
-	engine::board_t board;
-	std::ifstream inputFile(argv[2]);
-	for (std::string move_string; std::getline(inputFile, move_string);) {
-		engine::move_t move(move_string);
-		board.make_move(move);
-		}
+using namespace engine;
 
-	std::vector<engine::move_t> legal_moves = board.legal_moves();
-	//here we will use the function search in search_t.h instead of legal_moves[0]//
-	std::ofstream asciiFile(argv[4]); // dont know what path to put yet
-	if(legal_moves.empty()){
+int main(int argc, char** argv) {
+	board_t board;
+
+	std::ifstream input_file{ argv[2] };
+	std::ofstream output_file{ argv[4] };
+
+	for (std::string move_string; std::getline(input_file, move_string);) {
+		board.make_move(move_string);
+	}
+
+	std::vector<move_t> legal_moves = board.legal_moves();
+
+	if (legal_moves.empty()) {
 		std::cerr << "No possible legal moves" << std::endl;
-	}else {
-		asciiFile << legal_moves[0] << std::endl;
+	} else {
+		output_file << legal_moves[0] << std::endl;
 	}
 	
 	return 0;
