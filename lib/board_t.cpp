@@ -464,6 +464,7 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	return os;
 };
 
+<<<<<<< Updated upstream
 std::bitset<265> board_t::to_bitset() const {   //do not consider en passant state
 	std::bitset<265> key;
 	std::size_t bit = 0;
@@ -519,6 +520,7 @@ std::bitset<265> board_t::to_bitset() const {   //do not consider en passant sta
 	key.set(bit++, this->_turn_color == player_color::white);
 	return key;
 }
+
 
 move_info_t board_t::get_move_info(move_t move){
 	// the board now is in the state of before the move
