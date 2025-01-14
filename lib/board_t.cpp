@@ -537,4 +537,17 @@ void board_t::unmake_move(move_info_t info){
 	this->black_king_or_left_rook_moved = info.black_king_or_left_rook_moved;
 	this->black_king_or_right_rook_moved = info.black_king_or_right_rook_moved;
 	this->turns_since_capture_or_pawn_move = info.turns_since_capture_or_pawn_move;
+
+	if(info.move.promotion_code.has_value()){
+		//we have promotion here
+		this->_piece_count(this->_turn_color, info.move.promotion_code.value())--;
+		this->_piece_count(this->_turn_color, piece_kind::pawn)++;
+		this->piece(info.move.destination)->kind = piece_kind::pawn;
+	}
+
+	this->piece(info.move.source) = this->piece(info.move.destination);
+
+	if(info.eaten_piece.has_value()){
+		this->piece(info.move.destination) = info.eaten_piece.value();
+	}
 }
