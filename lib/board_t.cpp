@@ -72,13 +72,19 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
 
 	fen_fields[5] = fen_string;
 
+	std::cout << "fen fields: ";
+	for (std::string field : fen_fields) {
+		std::cout << " ";
+		std::cout << field;
+	}
+
 	// We use the first field to fill the pieces in the board
 	int current_coordinate = 0;
 
 	for (char c : fen_fields[0]) {
-		if (std::isdigit(c))
-			current_coordinate += static_cast<int>(c) - static_cast<int>('1');
-		else if (c == '/');
+		std::cout << current_coordinate << " ";
+		if (std::isdigit(c)) current_coordinate += c - '1'; 
+		else if (c == '/') continue;
 		else {
 			auto color = std::isupper(c) ? player_color::white : player_color::black;
 			piece_kind kind;
@@ -94,7 +100,7 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
 
 			this->_piece_count(color, kind)++;
 
-			this->pieces[current_coordinate] = piece_t{ kind, color };
+			this->pieces[(7 - (current_coordinate / 8)) * 8 + (current_coordinate % 8)] = piece_t{ kind, color };
 		}
 
 		current_coordinate++;
@@ -476,7 +482,7 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 		os << "|\n";
 		
 		// Display row
-		for (int column = 7; column >= 0; column--) {
+		for (int column = 0; column < 8; column++) {
 			os << "| ";
 			auto piece = board.piece({ row, column });
 

@@ -127,7 +127,7 @@ std::vector<move_t> engine::gen_moves<piece_kind::knight>(
 		int column = source.column() + dx + dx * x_toggle;
 
 		if (0 <= row && row < 8 && 0 <= column && column < 8)
-			re.push_back({ source, { row, column } });
+			add_if_empty_or_opponent(source, { row, column }, color, board, re);
 	}
 
 	return re;
