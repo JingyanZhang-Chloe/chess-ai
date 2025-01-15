@@ -602,6 +602,8 @@ move_info_t board_t::get_move_info(move_t move){
 }
 
 void board_t::unmake_move(move_info_t info){
+	this->position_count[this->to_bitset()]--;
+
 	this->latest_move() = info.last_move;
 	this->white_king_or_left_rook_moved = info.white_king_or_left_rook_moved;
 	this->white_king_or_right_rook_moved = info.white_king_or_right_rook_moved;
@@ -609,7 +611,7 @@ void board_t::unmake_move(move_info_t info){
 	this->black_king_or_right_rook_moved = info.black_king_or_right_rook_moved;
 	this->turns_since_capture_or_pawn_move = info.turns_since_capture_or_pawn_move;
 
-	if(info.move.promotion_code.has_value()){
+	if (info.move.promotion_code.has_value()) {
 		//we have promotion here
 		this->_piece_count(this->_turn_color, info.move.promotion_code.value())--;
 		this->_piece_count(this->_turn_color, piece_kind::pawn)++;
@@ -618,7 +620,7 @@ void board_t::unmake_move(move_info_t info){
 
 	this->piece(info.move.source) = this->piece(info.move.destination);
 
-	if(info.eaten_piece.has_value()){
-		this->piece(info.move.destination) = info.eaten_piece.value();
+	if (info.captured_piece.has_value()) {
+		this->piece(info.move.destination) = info.captured_piece.value();
 	}
 }
