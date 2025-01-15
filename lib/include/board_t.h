@@ -14,6 +14,7 @@ namespace engine {
 class board_t {
 public:
 	board_t();
+	board_t(std::string fen_string);
 
 	//=======================
 	// Move-related functions

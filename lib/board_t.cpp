@@ -7,7 +7,6 @@
 #include <piece_kind.h>
 #include <gen_move_fn.h>
 
-
 using namespace engine;
 
 // Reviewed, tested
@@ -58,9 +57,77 @@ board_t::board_t()
 	this->position_count.insert({ this->to_bitset(), 1 });
 }
 
+// TODO: Input validation
+board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}} {
+	std::array<std::string, 6> fen_fields;
+	
+	for (int i = 0; i < 5; i++) {
+		std::size_t delim_index = fen_string.find(" ");
+		
+		fen_fields[i] = fen_string.substr(0, delim_index);
+		fen_string.erase(0, delim_index + 1);
+	}
+
+	fen_fields[5] = fen_string;
+
+	// We use the first field to fill the pieces in the board
+	int current_coordinate = 0;
+
+	for (char c : fen_fields[0]) {
+		if (std::isdigit(c)) current_coordinate += c - '1'; 
+		else if (c == '/') continue;
+		else {
+			auto color = std::isupper(c) ? player_color::white : player_color::black;
+			piece_kind kind;
+
+			switch (std::tolower(c)) {
+			case 'p': kind = piece_kind::pawn; break;
+			case 'n': kind = piece_kind::knight; break;
+            case 'r': kind = piece_kind::rook; break;
+            case 'q': kind = piece_kind::queen; break;
+            case 'b': kind = piece_kind::bishop; break;
+            case 'k': kind = piece_kind::king; break;
+            }
+
+			this->_piece_count(color, kind)++;
+
+			this->pieces[(7 - (current_coordinate / 8)) * 8 + (current_coordinate % 8)] = piece_t{ kind, color };
+		}
+
+		current_coordinate++;
+	}
+
+	// We use the second field to set whose turn it is
+	this->_turn_color = fen_fields[1] == "w" ? player_color::white : player_color::black;
+
+	// We use the third field to set the castling rights
+	for (char c : fen_fields[2])
+	switch (c) {
+	case 'K': this->white_king_or_right_rook_moved = false; break;
+	case 'Q': this->white_king_or_left_rook_moved = false; break;
+	case 'k': this->black_king_or_right_rook_moved = false; break;
+	case 'q': this->black_king_or_left_rook_moved = false; break;
+	}
+
+	// We use the fourth field to set the latest move
+	if (fen_fields[3] != "-") {
+		chess_coordinate_t en_passant_position{ fen_fields[3] };
+		int y_direction = this->_turn_color == player_color::white ? 1 : -1;
+
+		this->_latest_move = move_t{
+			{ en_passant_position.row() + y_direction, en_passant_position.column() },
+			{ en_passant_position.row() - y_direction, en_passant_position.column() }
+		};
+	}
+
+	// We use the fifth field as the number of "half-turns"
+	this->turns_since_capture_or_pawn_move = std::stoi(fen_fields[4]);
+
+	// We don't use the sixth field
+}
+
 // Reviewed
 move_info_t board_t::make_move(move_t move) {
-
 	move_info_t info = get_move_info(move);
 
 	this->turns_since_capture_or_pawn_move++;
@@ -141,7 +208,7 @@ move_info_t board_t::make_move(move_t move) {
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
 	this->_latest_move = move;
 	
-	hash_t current_hash = this->to_bitset();
+	board_t::hash_t current_hash = this->to_bitset();
 
 	if (this->position_count.contains(current_hash))
 		this->position_count[current_hash]++;
@@ -406,7 +473,7 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 		os << "|\n";
 		
 		// Display row
-		for (int column = 7; column >= 0; column--) {
+		for (int column = 0; column < 8; column++) {
 			os << "| ";
 			auto piece = board.piece({ row, column });
 
@@ -522,12 +589,16 @@ std::bitset<265> board_t::to_bitset() const {   //do not consider en passant sta
 
 
 move_info_t board_t::get_move_info(move_t move){
-	// the board now is in the state of before the move
-	move_info_t info { move, this->white_king_or_left_rook_moved, this->white_king_or_right_rook_moved, this->black_king_or_left_rook_moved, this->black_king_or_right_rook_moved, this->turns_since_capture_or_pawn_move };
-	info.last_move = this->latest_move();
-
-	info.eaten_piece = this->piece(move.destination);
-
+	return {
+		move, 
+		this->piece(move.destination),
+		this->latest_move(), 
+		this->white_king_or_left_rook_moved, 
+		this->white_king_or_right_rook_moved, 
+		this->black_king_or_left_rook_moved, 
+		this->black_king_or_right_rook_moved, 
+		this->turns_since_capture_or_pawn_move 
+	};
 }
 
 void board_t::unmake_move(move_info_t info){

@@ -4,7 +4,7 @@
 namespace engine {
 
 enum class antipiece_kind {
-	pawn=1, knight=2, bishop=3, rook=4, queen=5, king=6
+	pawn=0, knight=1, bishop=2, rook=3, queen=4, king=5
 };
 
 namespace piece_kind_fn {

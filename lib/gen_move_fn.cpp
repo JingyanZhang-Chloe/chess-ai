@@ -127,7 +127,7 @@ std::vector<move_t> engine::gen_moves<piece_kind::knight>(
 		int column = source.column() + dx + dx * x_toggle;
 
 		if (0 <= row && row < 8 && 0 <= column && column < 8)
-			re.push_back({ source, { row, column } });
+			add_if_empty_or_opponent(source, { row, column }, color, board, re);
 	}
 
 	return re;
@@ -204,7 +204,12 @@ std::vector<move_t> pawn_simple_captures(
 
 		if (0 <= new_column && new_column < 8) {
 			chess_coordinate_t advance { source.row() + y_direction, new_column };
-			add_if_empty_or_opponent(source, advance, color, board, capturing_advances);
+			
+			std::optional<piece_t> dest_piece = board.piece(advance);
+
+			if (dest_piece.has_value() && dest_piece.value().color 
+				== player_color_fn::opposite(color))
+				capturing_advances.push_back({ source, advance });
 		}
 	}
 
@@ -268,7 +273,7 @@ std::vector<move_t> engine::gen_moves<piece_kind::pawn>(
 	v1.insert(v1.end(), v2.begin(), v2.end());
 
 	std::vector<move_t> v3 = pawn_en_passant(coord, color, board);
-	v1.insert(v1.end(), v2.begin(), v2.end());
+	v1.insert(v1.end(), v3.begin(), v3.end());
 
 	return v1;
 }
