@@ -53,7 +53,9 @@ public:
 	bool is_draw() const;
 
 	float score() const;
-	std::bitset<265> to_bitset() const;
+
+	using hash_t = std::bitset<265>;
+	hash_t to_bitset() const;
 
 private:
 	std::optional<piece_t> pieces[64];
@@ -69,8 +71,6 @@ private:
 	std::array<int, 12> __piece_count;
 	int& _piece_count(player_color, piece_kind);
 	const int& _piece_count(player_color, piece_kind) const;
-
-	using hash_t = std::bitset<265>;
 
 	std::unordered_map<hash_t, int> position_count;
 

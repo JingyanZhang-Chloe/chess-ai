@@ -2,7 +2,7 @@
 #include <chrono>
 #include "move_t.h"
 #include "board_t.h"
-#include <search_t.h>
+#include <search_fn.h>
 #include <piece_t.h>
 #include <vector>
 #include <random>

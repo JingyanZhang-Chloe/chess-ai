@@ -2,6 +2,9 @@
 
 using namespace engine;
 
+// This comes from the code of Jingyan Zhang (in this team)
+// but due to a wrong file manipulation, git does not show that this is a revision of
+// her code.
 move_info_t::move_info_t(
 	move_t move, 
 	std::optional<piece_t> captured_piece,
