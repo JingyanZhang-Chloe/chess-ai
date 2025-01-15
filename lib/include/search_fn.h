@@ -1,8 +1,9 @@
+#pragma once
 #include <board_t.h>
 #include <move_t.h>
 
 namespace engine {
 
-move_t get_best_move(board_t&);
+float minmax(board_t&, int depth);
 
-};
+}

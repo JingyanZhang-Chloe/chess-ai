@@ -1,13 +1,11 @@
 #include <iostream>
 #include <optional>
 #include <cmath>
-#include <algorithm>
 #include <board_t.h>
 #include <piece_t.h>
 #include <player_color.h>
 #include <piece_kind.h>
 #include <gen_move_fn.h>
-
 
 using namespace engine;
 
@@ -72,17 +70,10 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
 
 	fen_fields[5] = fen_string;
 
-	std::cout << "fen fields: ";
-	for (std::string field : fen_fields) {
-		std::cout << " ";
-		std::cout << field;
-	}
-
 	// We use the first field to fill the pieces in the board
 	int current_coordinate = 0;
 
 	for (char c : fen_fields[0]) {
-		std::cout << current_coordinate << " ";
 		if (std::isdigit(c)) current_coordinate += c - '1'; 
 		else if (c == '/') continue;
 		else {
@@ -598,13 +589,16 @@ std::bitset<265> board_t::to_bitset() const {   //do not consider en passant sta
 
 
 move_info_t board_t::get_move_info(move_t move){
-	// the board now is in the state of before the move
-	move_info_t info { move, this->white_king_or_left_rook_moved, this->white_king_or_right_rook_moved, this->black_king_or_left_rook_moved, this->black_king_or_right_rook_moved, this->turns_since_capture_or_pawn_move };
-	info.last_move = this->latest_move();
-
-	info.eaten_piece = this->piece(move.destination);
-	
-	return info;
+	return {
+		move, 
+		this->piece(move.destination),
+		this->latest_move(), 
+		this->white_king_or_left_rook_moved, 
+		this->white_king_or_right_rook_moved, 
+		this->black_king_or_left_rook_moved, 
+		this->black_king_or_right_rook_moved, 
+		this->turns_since_capture_or_pawn_move 
+	};
 }
 
 void board_t::unmake_move(move_info_t info){
