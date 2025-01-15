@@ -273,7 +273,7 @@ std::vector<move_t> engine::gen_moves<piece_kind::pawn>(
 	v1.insert(v1.end(), v2.begin(), v2.end());
 
 	std::vector<move_t> v3 = pawn_en_passant(coord, color, board);
-	v1.insert(v1.end(), v2.begin(), v2.end());
+	v1.insert(v1.end(), v3.begin(), v3.end());
 
 	return v1;
 }
