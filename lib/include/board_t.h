@@ -16,6 +16,8 @@ public:
 	board_t();
 	board_t(std::string fen_string);
 
+	bool operator==(const board_t&) const;
+
 	//=======================
 	// Move-related functions
 	//=======================

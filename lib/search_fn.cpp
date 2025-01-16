@@ -5,14 +5,9 @@
 #include <player_color.h>
 
 using namespace engine;
+using namespace engine::minmax_types;
 
-// Cache that maps board hashes to pairs of the depth of computation and the
-// computed score
-using cache_t = std::unordered_map<board_t::hash_t, std::pair<int, float>>;
-
-float max_pass(board_t&, int, cache_t&);
-
-float min_pass(board_t& board, int depth, cache_t& cache) {
+float engine::min_pass(board_t& board, int depth, cache_t& cache) {
 	if (depth == 0) return board.score();
 
 	board_t::hash_t board_hash = board.to_bitset();
@@ -36,7 +31,7 @@ float min_pass(board_t& board, int depth, cache_t& cache) {
 	return min_score;
 }
 
-float max_pass(board_t& board, int depth, cache_t& cache) {
+float engine::max_pass(board_t& board, int depth, cache_t& cache) {
 	if (depth == 0) return board.score();
 
 	board_t::hash_t board_hash = board.to_bitset();
@@ -60,9 +55,14 @@ float max_pass(board_t& board, int depth, cache_t& cache) {
 	return max_score;
 }
 
+
 float engine::minmax(board_t& board, int depth) {
 	cache_t cache;
 
+	return engine::minmax(board, depth, cache);
+}
+
+float engine::minmax(board_t& board, int depth, cache_t& cache) {
 	return board.turn_color() == player_color::white
 		? max_pass(board, depth, cache)
 		: min_pass(board, depth, cache);
