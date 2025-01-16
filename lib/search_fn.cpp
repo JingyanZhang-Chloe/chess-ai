@@ -5,14 +5,9 @@
 #include <player_color.h>
 
 using namespace engine;
+using namespace engine::minmax_types;
 
-// Cache that maps board hashes to pairs of the depth of computation and the
-// computed score
-using cache_t = std::unordered_map<board_t::hash_t, std::pair<int, float>>;
-
-float max_pass(board_t&, int, float, float, cache_t&);
-
-float min_pass(board_t& board, int depth, float alpha, float beta, cache_t& cache) {
+float engine::min_pass(board_t& board, int depth, float alpha, float beta, cache_t& cache) {
 	if (depth == 0) return board.score();
 
 	board_t::hash_t board_hash = board.to_bitset();
@@ -27,7 +22,6 @@ float min_pass(board_t& board, int depth, float alpha, float beta, cache_t& cach
 
 		float score = max_pass(board, depth - 1, alpha, beta, cache);
 
-
 		board.unmake_move(move_info);
 
 		if (score < min_score) min_score = score;
@@ -39,7 +33,7 @@ float min_pass(board_t& board, int depth, float alpha, float beta, cache_t& cach
 	return min_score;
 }
 
-float max_pass(board_t& board, int depth, float alpha, float beta, cache_t& cache) {
+float engine::max_pass(board_t& board, int depth, float alpha, float beta, cache_t& cache) {
 	if (depth == 0) return board.score();
 
 	board_t::hash_t board_hash = board.to_bitset();
@@ -65,13 +59,16 @@ float max_pass(board_t& board, int depth, float alpha, float beta, cache_t& cach
 	return max_score;
 }
 
+
 float engine::minmax(board_t& board, int depth) {
 	cache_t cache;
-
 	float alpha = -std::numeric_limits<float>::infinity();
-	float beta =   std::numeric_limits<float>::infinity();
-
-	return board.turn_color() == player_color::white
-		? max_pass(board, depth, alpha, beta, cache)
-		: min_pass(board, depth, alpha, beta, cache);
+    float beta  =  std::numeric_limits<float>::infinity();
+	if (board.turn_color() == player_color::white) {
+		return max_pass(board, depth, alpha, beta, cache);
+    } else {
+        return min_pass(board, depth, alpha, beta, cache);
+    }
 }
+
+
