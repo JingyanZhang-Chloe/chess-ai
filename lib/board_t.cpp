@@ -191,6 +191,25 @@ move_info_t board_t::make_move(move_t move) {
 		this->turns_since_capture_or_pawn_move = 0;
 	}
 
+	if(this->piece(move.source).value().kind == piece_kind::pawn){
+		if(abs(move.source.row() - move.destination.row()) == abs(move.source.column() - move.destination.column())){
+			if(!(this->piece(move.destination).has_value())){
+				// then it is en passant
+				std::cout << "we are handling an en passant, the evil pawn's coord: " << move.source << std::endl;
+
+
+				if(!(this->piece({move.source.row(), move.destination.column()}).has_value()) || this->piece({move.source.row(), move.destination.column()}).value().kind != piece_kind::pawn){
+					std::cout << "the evil pawn is here: " << move.source << std::endl;
+					throw "[Error in make move en passant: try to eat some no pawn piece by en passant]";
+				}
+
+				//if it is indeed a pawn, we peacefully eat it
+				this->piece({move.source.row(), move.destination.column()}) = std::nullopt;
+				this->_piece_count(player_color_fn::opposite(this->turn_color()), piece_kind::pawn)--;
+			}
+		}
+	}
+
 	this->piece(move.destination) = this->piece(move.source);
 	this->piece(move.source) = std::nullopt;
 
@@ -203,23 +222,6 @@ move_info_t board_t::make_move(move_t move) {
 			move.promotion_code.value(),
 			this->_turn_color
 		};
-	}
-
-	// Handle en-passant
-	if(this->piece(move.source).value().kind == piece_kind::pawn){
-		if(abs(move.source.row() - move.destination.row()) == abs(move.source.column() - move.destination.column())){
-			if(!(this->piece(move.destination).has_value())){
-				// then it is en passant
-				if(!(this->piece({move.source.row(), move.destination.column()}).has_value()) || this->piece({move.source.row(), move.destination.column()}).value().kind != piece_kind::pawn){
-					std::cout << "the evil pawn is here: " << move.source << std::endl;
-					throw "[Error in make move en passant: try to eat some no pawn piece by en passant]";
-				}
-
-				//if it is indeed a pawn, we peacefully eat it
-				this->piece({move.source.row(), move.destination.column()}) = std::nullopt;
-				this->_piece_count(player_color_fn::opposite(this->turn_color()), piece_kind::pawn)--;
-			}
-		}
 	}
 
 	// Update game-state-related information
