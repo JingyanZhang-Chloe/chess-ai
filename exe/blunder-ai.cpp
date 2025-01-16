@@ -12,13 +12,13 @@ using namespace engine;
 std::vector<move_t> legal_moves(board_t& board) {
 	board_t initial_board = board;
 
-	std::vector<move_t> moves = board.legal_moves();
+	std::vector<move_t> moves = board.pseudolegal_moves();
 	std::vector<move_t> re;
 
 	for (auto move : moves) {
 		move_info_t move_info = board.make_move(move);
 		board_t board_after_move = board;
-		auto moves_2 = board.legal_moves();
+		auto moves_2 = board.pseudolegal_moves();
 		
 		bool other_can_capture = false;
 
@@ -92,11 +92,11 @@ std::optional<move_t> minmax_strategy(board_t& board, int depth = 4) {
 
 	minmax_types::cache_t cache;
 	
-	for (move_t move : board.legal_moves()) {
+	for (move_t move : board.pseudolegal_moves()) {
 		move_info_t move_info = board.make_move(move);
 		float score = minmax(board, depth - 1, cache);
 		board.unmake_move(move_info);
-		
+
 		std::cout << score << " ";
 
 		if ((board.turn_color() == player_color::white && score > best_score)

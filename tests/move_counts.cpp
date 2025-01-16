@@ -8,27 +8,47 @@ void display_moves(std::vector<move_t> moves) {
 }
 
 std::vector<move_t> legal_moves(board_t& board) {
-	std::vector<move_t> moves = board.legal_moves();
+	board_t initial_board = board;
+
+	std::vector<move_t> moves = board.pseudolegal_moves();
 	std::vector<move_t> re;
 
 	for (auto move : moves) {
 		move_info_t move_info = board.make_move(move);
-		auto moves_2 = board.legal_moves();
+		board_t board_after_move = board;
+		auto moves_2 = board.pseudolegal_moves();
 		
 		bool other_can_capture = false;
 
 		for (auto move_2 : moves_2) {
 			auto move_info_2 = board.make_move(move_2);
+
 			if (board.winning_player().has_value()) {
 				other_can_capture = true;
+				board.unmake_move(move_info_2);
 				break;
 			}
 			board.unmake_move(move_info_2);
+
+			if (board != board_after_move) {
+				std::cout << "[Legal Moves] Board not same after making and unmaking sub-move" << std::endl;
+				std::cout << "Should be: " << std::endl;
+				std::cout << board_after_move << std::endl;
+				std::cout << "But is: " << std::endl;
+				std::cout << board << std::endl;
+				throw;
+			}
 		}
 		
 		if (!other_can_capture) re.push_back(move);
 
 		board.unmake_move(move_info);
+
+		if (board != initial_board) {
+			std::cout << "[Legal Moves] Board not same after making and unmaking move" << std::endl;
+			std::cout << board << std::endl;
+			throw;
+		}
 	}
 	
 	return re;
@@ -55,9 +75,9 @@ int main() {
 	board_t initial_board;
 	std::cout << initial_board << std::endl;
 	assert(perft(initial_board, 1) == 20);
-	//assert(perft(initial_board, 2) == 400);
+	assert(perft(initial_board, 2) == 400);
+	assert(perft(initial_board, 3) == 8902);
 	std::cout << "passed1" << std::endl;
-//	assert(perft(initial_board, 3) == 8902);
 
 	std::cout << "==========[Count 2]==========\n";
 	board_t board1{"r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1 "};
@@ -77,6 +97,7 @@ int main() {
 	
 	} catch (const char* e) {
 		std::cout << e;
+		return 1;
 	}
 	
 	return 0;

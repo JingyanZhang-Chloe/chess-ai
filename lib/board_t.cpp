@@ -241,9 +241,9 @@ move_info_t board_t::make_move(move_t move) {
 }
 
 // Reviewed
-std::vector<move_t> board_t::legal_moves() const { 
-	std::vector<move_t> legal_moves;
-	legal_moves.reserve(16);
+std::vector<move_t> board_t::pseudolegal_moves() const { 
+	std::vector<move_t> re;
+	re.reserve(16);
 
 	for (int row = 0; row < 8; row++) {
 		for (int col = 0; col < 8; col++) {
@@ -253,17 +253,29 @@ std::vector<move_t> board_t::legal_moves() const {
 			if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
 				piece_t p = mb_piece.value();
 
-				gen_moves(p.kind, coord, this->_turn_color, *this, legal_moves);
+				gen_moves(p.kind, coord, this->_turn_color, *this, re);
 			}
 		}
 	}
 
-	return legal_moves;
+	return re;
 }
 
 // Reviewed
 std::optional<move_t> board_t::latest_move() const {
 	return this->_latest_move;
+}
+
+bool board_t::is_legal(move_t move) {
+	auto move_info = this->make_move(move);
+	this->_turn_color = player_color_fn::opposite(this->_turn_color);
+	
+	bool legal = !this->is_check();
+
+	this->_turn_color = player_color_fn::opposite(this->_turn_color);
+	this->unmake_move(move_info);
+	
+	return legal;
 }
 
 // Reviewed
@@ -417,14 +429,22 @@ bool board_t::is_check() const {
 	return king_coords.has_value() && this->is_attacked(king_coords.value());
 }
 
-// TODO:  Serious optimization needed here
-bool board_t::is_draw() const {
+// TODO:  Optimization needed here, redundancy of legal_moves call.
+bool board_t::is_draw() {
 	// Case 1 : Stalemate
-	// EMERGENCY: These are not true legal moves, our bot has a tendency to reach stalemate
-	if (this->legal_moves().size() == 0) return true;
+	std::vector<move_t> moves = this->pseudolegal_moves();
+	bool exists_legal_move = false;
+	
+	for (auto move : moves) 
+	if (this->is_legal(move)) {
+		exists_legal_move = true;
+		break;
+	}
 
-	int __piece_count = this->piece_count();
+	if (!exists_legal_move) { std::cout << "It's a draw!!!" << std::endl; return true; }
+
 	// Case 2 : Dead Position
+	int __piece_count = this->piece_count();
 	// King vs. King: Only two kings are left
 	if (__piece_count == this->piece_count(piece_kind::king)) return true;
 	
@@ -452,7 +472,7 @@ bool board_t::is_draw() const {
 	return false;
 }
 
-float board_t::score() const {
+float board_t::score() {
 	std::optional<player_color> _winning_player = this->winning_player();
 	if (_winning_player.has_value()) {
 		if (_winning_player.value() == this->turn_color())
