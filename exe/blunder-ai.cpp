@@ -3,23 +3,50 @@
 #include <board_t.h>
 #include <fstream>
 #include <move_t.h>
+#include <search_fn.h>
 
-int main(int argc, char ** argv) {
-	engine::board_t board;
-	std::ifstream inputFile(argv[2]);
-	for (std::string move_string; std::getline(inputFile, move_string);) {
-		engine::move_t move(move_string);
-		board.make_move(move);
+using namespace engine;
+
+std::optional<move_t> strategy(board_t& board, int depth = 4) {
+	float best_score = minmax(board, depth);
+	std::cout << best_score << ";";
+
+	for (move_t move : board.legal_moves()) {
+		move_info_t move_info = board.make_move(move);
+		float score = minmax(board, depth - 1);
+		std::cout << score << " ";
+		board.unmake_move(move_info);
+
+		if (score == best_score) return move;
+	}
+
+	return std::nullopt;
+}
+
+int main(int argc, char** argv) {
+	board_t board;
+
+	std::ifstream input_file{ argv[2] };
+	std::ofstream output_file{ argv[4] };
+
+	std::string file_string;
+
+	try {
+		for (std::string move_string; std::getline(input_file, move_string);) {
+			file_string += move_string;
+
+			board.make_move(move_string);
 		}
 
-	std::vector<engine::move_t> legal_moves = board.legal_moves();
-	//here we will use the function search in search_t.h instead of legal_moves[0]//
-	std::ofstream asciiFile(argv[4]); // dont know what path to put yet
-	if(legal_moves.empty()){
-		std::cerr << "No possible legal moves" << std::endl;
-	}else {
-		asciiFile << legal_moves[0] << std::endl;
-	}
+		std::optional<move_t> chosen_move = strategy(board);
+
+		if (chosen_move.has_value())
+			output_file << chosen_move.value() << std::endl;
 	
-	return 0;
+		return 0;
+	} catch (std::exception* e) {
+		std::cout << e->what();
+		std::cout << file_string;
+		return 1;
+	}
 }

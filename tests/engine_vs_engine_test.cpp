@@ -2,56 +2,70 @@
 #include <chrono>
 #include "move_t.h"
 #include "board_t.h"
-#include "search_t.h"
-#include "piece_t.h"
+#include <search_fn.h>
+#include <piece_t.h>
 #include <vector>
+#include <random>
 #include <optional>
 
 using namespace engine;
 
+// Random move strategy
+move_t strategy(const board_t& board, std::mt19937 rng) {
+	std::vector<move_t> legal_moves = board.legal_moves();
+
+	std::uniform_int_distribution<int> rand_dist{0, (int) legal_moves.size() - 1};
+	
+	return legal_moves.at(rand_dist(rng));
+}
+
 int main() {
-    engine::board_t board;
-    int delai_for_move_allowed = 10000; // millieseconds
-    int max_moves = 80; // 40 is the average number of full move during a chess game (20 each)
-    bool found = false; // to check if the move is legal
+	int seed;
+	std::cout << "Enter the random seed (type a random integer): ";
+	std::cin >> seed;
+	std::cout << "\n\n";
 
-    std::cout<< "Start test\n\n";
+	std::mt19937 rng;
+	rng.seed(seed);
 
-    for(int i = 1; i<=max_moves; i++){
-        std::cout << board;
-        std::vector<engine::move_t> legal_moves = board.legal_moves();
-        auto starting_time = std::chrono::steady_clock::now();    // mesuring time for the engine to output a move
-        engine::move_t move = legal_moves[0];   // needs to be changed by our search
+    board_t board;
+    int max_move_time = 10000; // milliseconds
+
+    std::cout << "\033[94m============[Self-play Test]============\033[0m\n\n";
+
+	for (int move_counter = 0;; move_counter++) {
+		std::cout << board << std::endl;
+
+		if (board.winning_player().has_value()) {
+			std::cout << "\033[32m[Game Won]: \033[1m"
+			<< board.winning_player().value() << "\033[0m" << std::endl;
+			break;
+		}
+		else if (board.is_draw()) {
+			std::cout << "\033[32m[Game Draw]\033[1m" << std::endl;
+			break;
+		}
+
+        auto starting_time = std::chrono::steady_clock::now();
+
+		move_t move = strategy(board, rng);
+
         auto ending_time = std::chrono::steady_clock::now();
-        auto total_time_for_move = std::chrono::duration_cast<std::chrono::milliseconds>(ending_time - starting_time).count();
+        auto move_time = std::chrono::duration_cast<std::chrono::milliseconds>(ending_time - starting_time).count();
 
-        std::optional<engine::piece_t> mb_piece = board.piece(move.source);  //checking if there is a piece at this square
-        if (mb_piece.has_value()==false){
-            std::cerr<< "Engine tried to move a piece from a square with no pieces:" << move.source <<"\n";
+        if (move_time > max_move_time) {
+            std::cerr<< "[Error] Engine took more than time than allowed.\n";
             return 1;
         }
 
-        engine::piece_t piece = mb_piece.value();
-
-        for (const auto& m : legal_moves) {   //checking if the move is legal
-            if (m == move) {
-                found = true;
-                break;
-            }
-        }
-
-        if(found == false){
-            std::cerr<<"Engine tried to do an illegal move\n";
-            return 1;
-        }
-        found = false;
-        if(total_time_for_move > delai_for_move_allowed){
-            std::cerr<< "The move" << i << "took more than 5 seconds\n";
-            return 1;
-        }
         board.make_move(move);
-        std::cout << "Move " << i << ": " << move << "\n, piece: " << piece.kind<< ",\n color: " << piece.color << ",\n took " << total_time_for_move << "ms" << std::endl;
-    
+
+        std::cout << "Move Number: " << move_counter
+		<< "\nMove: " << move 
+		<< ",\nPiece: " << board.piece(move.destination).value().kind
+		<< ",\nColor: " << board.piece(move.destination).value().color 
+		<< ",\nTime taken: " << move_time << "ms\n" << std::endl;
     }
+
     return 0;
 }
