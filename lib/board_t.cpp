@@ -650,7 +650,7 @@ void board_t::unmake_move(move_info_t info){
 	//handle en passant
 	if(this->piece(info.move.source).value().kind == piece_kind::pawn){
 		if(abs(info.move.source.row() - info.move.destination.row()) == abs(info.move.source.column() - info.move.destination.column())){
-			if(!(this->piece(info.move.destination).has_value())){
+			if(!(info.captured_piece.has_value())){
 				// then it is en passant
 				if((this->piece({info.move.source.row(), info.move.destination.column()}).has_value())){
 					std::cout << "the piece should not be here: " << this->piece({info.move.source.row(), info.move.destination.column()}).value().kind << "at" << chess_coordinate_t{info.move.source.row(), info.move.destination.column()} << std::endl;
