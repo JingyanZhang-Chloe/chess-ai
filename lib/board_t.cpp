@@ -130,6 +130,11 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
 move_info_t board_t::make_move(move_t move) {
 	move_info_t info = get_move_info(move);
 
+	if(!(this->piece(move.source).has_value())){
+		std::cout << move.source << std::endl;
+		throw "[Error in make_move] try to make a move from an empty position";
+	};
+
 	this->turns_since_capture_or_pawn_move++;
 
 	// Update castling-related information if rook or king is moving
@@ -200,7 +205,22 @@ move_info_t board_t::make_move(move_t move) {
 		};
 	}
 
-	// EMERGENCY: Handle en-passant
+	// Handle en-passant
+	if(this->piece(move.source).value().kind == piece_kind::pawn){
+		if(abs(move.source.row() - move.destination.row()) == abs(move.source.column() - move.destination.column())){
+			if(!(this->piece(move.destination).has_value())){
+				// then it is en passant
+				if(!(this->piece({move.source.row(), move.destination.column()}).has_value()) || this->piece({move.source.row(), move.destination.column()}).value().kind != piece_kind::pawn){
+					std::cout << "the evil pawn is here: " << move.source << std::endl;
+					throw "[Error in make move en passant: try to eat some no pawn piece by en passant]";
+				}
+
+				//if it is indeed a pawn, we peacefully eat it
+				this->piece({move.source.row(), move.destination.column()}) = std::nullopt;
+				this->_piece_count(player_color_fn::opposite(this->turn_color()), piece_kind::pawn)--;
+			}
+		}
+	}
 
 	// Update game-state-related information
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
@@ -626,6 +646,36 @@ void board_t::unmake_move(move_info_t info){
 		this->_piece_count(this->_turn_color, piece_kind::pawn)++;
 		this->piece(info.move.destination)->kind = piece_kind::pawn;
 	}
+
+	//handle en passant
+	if(this->piece(info.move.source).value().kind == piece_kind::pawn){
+		if(abs(info.move.source.row() - info.move.destination.row()) == abs(info.move.source.column() - info.move.destination.column())){
+			if(!(this->piece(info.move.destination).has_value())){
+				// then it is en passant
+				if((this->piece({info.move.source.row(), info.move.destination.column()}).has_value())){
+					std::cout << "the piece should not be here: " << this->piece({info.move.source.row(), info.move.destination.column()}).value().kind << "at" << chess_coordinate_t{info.move.source.row(), info.move.destination.column()} << std::endl;
+					throw "[Error in unmake move en passant: extra piece at a place where the pawn should eat]";
+				}
+
+				//if theres nothing, bring a pawn
+				this->piece({info.move.source.row(), info.move.destination.column()}) = piece_t{piece_kind::pawn, player_color_fn::opposite(this->turn_color())};
+				this->_piece_count(player_color_fn::opposite(this->turn_color()), piece_kind::pawn)++;
+			}
+		}
+	};
+
+	// Handle the case where the king is castling
+	if (this->piece(info.move.source).value().kind == piece_kind::king
+		&& std::abs(info.move.destination.column() - info.move.source.column()) > 1) {
+		// We move the rook, the king movement gets handled normally after
+		int castle_direction = info.move.destination.column() - info.move.source.column();
+		int rook_column = castle_direction == 1 ? 7 : 0;
+		int new_rook_column = castle_direction == 1 ? 5 : 3;
+		
+		this->piece({ info.move.source.row(), new_rook_column }) = std::nullopt;
+		this->piece({ info.move.source.row(), rook_column }) 
+			= piece_t{ piece_kind::rook, this->_turn_color };
+	};
 
 	this->piece(info.move.source) = this->piece(info.move.destination);
 	this->piece(info.move.destination) = info.captured_piece;
