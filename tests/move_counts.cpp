@@ -21,6 +21,7 @@ std::vector<move_t> legal_moves(board_t& board) {
 			auto move_info_2 = board.make_move(move_2);
 			if (board.winning_player().has_value()) {
 				other_can_capture = true;
+				board.unmake_move(move_info_2);
 				break;
 			}
 			board.unmake_move(move_info_2);
