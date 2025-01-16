@@ -68,8 +68,8 @@ float max_pass(board_t& board, int depth, float alpha, float beta, cache_t& cach
 float engine::minmax(board_t& board, int depth) {
 	cache_t cache;
 
-	float alpha = -std::numeric_limits<float>::infinity();;
-	float beta = std::numeric_limits<float>::infinity();;
+	float alpha = -std::numeric_limits<float>::infinity();
+	float beta =   std::numeric_limits<float>::infinity();
 
 	return board.turn_color() == player_color::white
 		? max_pass(board, depth, alpha, beta, cache)
