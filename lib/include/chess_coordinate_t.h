@@ -8,6 +8,7 @@ namespace engine {
 class chess_coordinate_t {
 	public:
 		chess_coordinate_t(int row, int column);
+		chess_coordinate_t(int index);
 		chess_coordinate_t(const std::string&);
 		
 		int8_t row();

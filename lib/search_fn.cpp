@@ -8,13 +8,18 @@ using namespace engine;
 using namespace engine::minmax_types;
 
 float engine::min_pass(board_t& board, int depth, cache_t& cache) {
-	if (depth == 0) return board.score();
-
 	board_t::hash_t board_hash = board.to_bitset();
 
 	if (cache.contains(board_hash) && depth <= cache[board_hash].first)
 		return cache[board_hash].second;
 
+	if (depth == 0 || board.is_game_over()) {
+		float score = board.score();
+
+		cache[board_hash] = { depth, score };
+		return score;
+	}
+	
 	float min_score = std::numeric_limits<float>::infinity();
 
 	for (move_t move : board.pseudolegal_moves()) {
@@ -32,12 +37,17 @@ float engine::min_pass(board_t& board, int depth, cache_t& cache) {
 }
 
 float engine::max_pass(board_t& board, int depth, cache_t& cache) {
-	if (depth == 0) return board.score();
-
 	board_t::hash_t board_hash = board.to_bitset();
 
 	if (cache.contains(board_hash) && depth <= cache[board_hash].first)
 		return cache[board_hash].second;
+
+	if (depth == 0 || board.is_game_over()) {
+		float score = board.score();
+
+		cache[board_hash] = { depth, score };
+		return score;
+	}
 	
 	float max_score = -std::numeric_limits<float>::infinity();
 

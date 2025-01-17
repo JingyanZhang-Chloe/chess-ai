@@ -11,8 +11,8 @@
 using namespace engine;
 
 // Random move strategy
-move_t strategy(const board_t& board, std::mt19937 rng) {
-	std::vector<move_t> legal_moves = board.legal_moves();
+move_t strategy(board_t& board, std::mt19937 rng) {
+	std::vector<move_t> legal_moves = board.pseudolegal_moves();
 
 	std::uniform_int_distribution<int> rand_dist{0, (int) legal_moves.size() - 1};
 	

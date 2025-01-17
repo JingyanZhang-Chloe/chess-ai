@@ -94,6 +94,7 @@ std::optional<move_t> minmax_strategy(board_t& board, int depth = 4) {
 	
 	for (move_t move : board.pseudolegal_moves()) {
 		move_info_t move_info = board.make_move(move);
+
 		float score = minmax(board, depth - 1, cache);
 		board.unmake_move(move_info);
 
@@ -125,6 +126,8 @@ int main(int argc, char** argv) {
 		}
 
 		std::optional<move_t> chosen_move = minmax_strategy(board);
+		board.make_move(chosen_move.value());
+		std::cout << "[==================] Is it a draw? " << (board.is_draw() ? "Yes" : "No");
 
 		if (chosen_move.has_value())
 			output_file << chosen_move.value() << std::endl;

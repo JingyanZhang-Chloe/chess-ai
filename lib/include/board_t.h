@@ -24,7 +24,7 @@ public:
 	move_info_t make_move(move_t);
 	void unmake_move(move_info_t);
 
-	std::vector<move_t> pseudolegal_moves() const;
+	std::vector<move_t> pseudolegal_moves();
 	std::optional<move_t> latest_move() const;
 
 	bool is_legal(move_t);
@@ -51,15 +51,16 @@ public:
 	std::optional<player_color> winning_player() const;
 
 	enum class side { left, right };
-	bool can_castle(side) const;
+	bool can_castle(side);
 	
-	bool is_check() const;
+	bool is_check();
 	bool is_draw();
+	bool is_game_over();
 
 	float score();
 
 	using hash_t = std::bitset<265>;
-	hash_t to_bitset() const;
+	hash_t to_bitset();
 
 private:
 	std::optional<piece_t> pieces[64];
@@ -72,6 +73,8 @@ private:
 	bool black_king_or_left_rook_moved;
 	bool black_king_or_right_rook_moved;
 
+	std::array<std::optional<chess_coordinate_t>, 2> _king_coordinates;
+
 	std::array<int, 12> __piece_count;
 	int& _piece_count(player_color, piece_kind);
 	const int& _piece_count(player_color, piece_kind) const;
@@ -81,6 +84,12 @@ private:
 	int turns_since_capture_or_pawn_move;
 
 	move_info_t get_move_info(move_t);
+
+	// Cached Info
+	std::optional<bool> _is_check;
+	std::optional<bool> _is_draw;
+	std::optional<std::vector<move_t>> _pseudolegal_moves;
+	std::optional<hash_t> current_hash;
 };
 
 };

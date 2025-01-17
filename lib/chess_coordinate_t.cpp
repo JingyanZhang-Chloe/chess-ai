@@ -13,6 +13,15 @@ chess_coordinate_t::chess_coordinate_t(int row, int column) {
 }
 
 // Reviewed
+chess_coordinate_t::chess_coordinate_t(int index) {
+	if (index < 0 || index >= 64) {
+		throw "[Chess Coordinate Error] Index out of range.";
+	}
+
+	this->coordinate = static_cast<int8_t>(index);
+}
+
+// Reviewed
 chess_coordinate_t::chess_coordinate_t(const std::string& coordinate_spec) {
 	if (coordinate_spec.size() < 2) {
 		throw "[Chess Coordinate Error] The specification string is too small.";
