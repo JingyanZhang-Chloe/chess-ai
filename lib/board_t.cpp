@@ -138,7 +138,23 @@ board_t::board_t(std::string fen_string):
 	// We don't use the sixth field
 }
 
-bool board_t::operator==(const board_t&) const = default;
+bool board_t::operator==(const board_t& other) const {
+	// Check that everything is equal except cached info
+	return std::equal(
+		std::begin(this->pieces), 
+		std::end(this->pieces), 
+		std::begin(other.pieces)
+	) && this->turn_color() == other.turn_color()
+	&& this->latest_move() == other.latest_move()
+	&& this->white_king_or_left_rook_moved == other.white_king_or_left_rook_moved
+	&& this->white_king_or_right_rook_moved == other.white_king_or_right_rook_moved
+	&& this->black_king_or_left_rook_moved == other.black_king_or_left_rook_moved
+	&& this->black_king_or_right_rook_moved == other.black_king_or_right_rook_moved
+	&& this->_king_coordinates == other._king_coordinates
+	&& this->__piece_count == other.__piece_count
+	&& this->position_count == other.position_count
+	&& this->turns_since_capture_or_pawn_move == other.turns_since_capture_or_pawn_move;
+}
 
 // Reviewed
 move_info_t board_t::make_move(move_t move) {
@@ -246,6 +262,13 @@ move_info_t board_t::make_move(move_t move) {
 		};
 	}
 
+	// Clear cache
+	this->_is_check = std::nullopt;
+	this->_is_draw = std::nullopt;
+	this->_pseudolegal_moves = std::nullopt;
+	this->current_hash = std::nullopt;
+
+
 	// Update game-state-related information
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
 	this->_latest_move = move;
@@ -257,12 +280,7 @@ move_info_t board_t::make_move(move_t move) {
 	else 
 		this->position_count.insert({ current_hash, 1 });
 	
-	// Clear cache
-	this->_is_check = std::nullopt;
-	this->_is_draw = std::nullopt;
-	this->_pseudolegal_moves = std::nullopt;
-	this->current_hash = std::nullopt;
-
+	
 	return info;
 }
 
@@ -538,7 +556,7 @@ float board_t::score() {
 	}
 
 	if (this->is_draw()) {
-		return 0;
+		return -1;
 	}
 	
 	float score = 0;
