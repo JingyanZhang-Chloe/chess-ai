@@ -69,9 +69,7 @@ float engine::max_pass(board_t& board, int depth, float alpha, float beta, cache
 	return max_score;
 }
 
-
-float engine::minmax(board_t& board, int depth) {
-	cache_t cache;
+float engine::minmax(board_t& board, int depth, cache_t& cache) {
 	float alpha = -std::numeric_limits<float>::infinity();
     float beta  =  std::numeric_limits<float>::infinity();
 	if (board.turn_color() == player_color::white) {
@@ -79,6 +77,13 @@ float engine::minmax(board_t& board, int depth) {
     } else {
         return min_pass(board, depth, alpha, beta, cache);
     }
+}
+
+
+float engine::minmax(board_t& board, int depth) {
+	cache_t cache;
+
+	return minmax(board, depth, cache);
 }
 
 
