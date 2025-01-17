@@ -3,6 +3,7 @@
 #include <optional>
 #include "piece_kind.h"
 #include "chess_coordinate_t.h"
+#include <piece_kind.h>
 
 namespace engine {
 
