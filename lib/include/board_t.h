@@ -16,14 +16,18 @@ public:
 	board_t();
 	board_t(std::string fen_string);
 
+	bool operator==(const board_t&) const;
+
 	//=======================
 	// Move-related functions
 	//=======================
 	move_info_t make_move(move_t);
 	void unmake_move(move_info_t);
 
-	std::vector<move_t> legal_moves() const;
-	std::optional<move_t> latest_move() const;	
+	std::vector<move_t> pseudolegal_moves() const;
+	std::optional<move_t> latest_move() const;
+
+	bool is_legal(move_t);
 
 	//========================
 	// Piece-related functions
@@ -50,9 +54,9 @@ public:
 	bool can_castle(side) const;
 	
 	bool is_check() const;
-	bool is_draw() const;
+	bool is_draw();
 
-	float score() const;
+	float score();
 
 	using hash_t = std::bitset<265>;
 	hash_t to_bitset() const;

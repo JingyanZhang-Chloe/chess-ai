@@ -17,7 +17,7 @@ float engine::min_pass(board_t& board, int depth, float alpha, float beta, cache
 
 	float min_score = std::numeric_limits<float>::infinity();
 
-	for (move_t move : board.legal_moves()) {
+	for (move_t move : board.pseudolegal_moves()) {
 		move_info_t move_info = board.make_move(move);
 
 		float score = max_pass(board, depth - 1, alpha, beta, cache);
@@ -43,7 +43,7 @@ float engine::max_pass(board_t& board, int depth, float alpha, float beta, cache
 	
 	float max_score = -std::numeric_limits<float>::infinity();
 
-	for (move_t move : board.legal_moves()) {
+	for (move_t move : board.pseudolegal_moves()) {
 		move_info_t move_info = board.make_move(move);
 
 		float score = min_pass(board, depth - 1, alpha, beta, cache);

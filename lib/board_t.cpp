@@ -126,6 +126,8 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
 	// We don't use the sixth field
 }
 
+bool board_t::operator==(const board_t&) const = default;
+
 // Reviewed
 move_info_t board_t::make_move(move_t move) {
 	move_info_t info = get_move_info(move);
@@ -173,8 +175,8 @@ move_info_t board_t::make_move(move_t move) {
 		&& std::abs(move.destination.column() - move.source.column()) > 1) {
 		// We move the rook, the king movement gets handled normally after
 		int castle_direction = move.destination.column() - move.source.column();
-		int rook_column = castle_direction == 1 ? 7 : 0;
-		int new_rook_column = castle_direction == 1 ? 5 : 3;
+		int rook_column = castle_direction > 0 ? 7 : 0;
+		int new_rook_column = castle_direction > 0 ? 5 : 3;
 		
 		this->piece({ move.source.row(), rook_column }) = std::nullopt;
 		this->piece({ move.source.row(), new_rook_column }) 
@@ -233,16 +235,15 @@ move_info_t board_t::make_move(move_t move) {
 	if (this->position_count.contains(current_hash))
 		this->position_count[current_hash]++;
 	else 
-		this->position_count.insert({ current_hash, 0 });
+		this->position_count.insert({ current_hash, 1 });
 
 	return info;
 }
 
-// Reviewed:
-// Move out the massive switch into its own function
-// Remove inserts by having the gen functions directly inserting by reference
-std::vector<move_t> board_t::legal_moves() const { 
-	std::vector<move_t> legal_moves;
+// Reviewed
+std::vector<move_t> board_t::pseudolegal_moves() const { 
+	std::vector<move_t> re;
+	re.reserve(16);
 
 	for (int row = 0; row < 8; row++) {
 		for (int col = 0; col < 8; col++) {
@@ -252,18 +253,29 @@ std::vector<move_t> board_t::legal_moves() const {
 			if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
 				piece_t p = mb_piece.value();
 
-				std::vector<move_t> p_moves = gen_moves(p.kind, coord, this->_turn_color, *this);
-				legal_moves.insert(legal_moves.end(), p_moves.begin(), p_moves.end());
+				gen_moves(p.kind, coord, this->_turn_color, *this, re);
 			}
 		}
 	}
 
-	return legal_moves;
+	return re;
 }
 
 // Reviewed
 std::optional<move_t> board_t::latest_move() const {
 	return this->_latest_move;
+}
+
+bool board_t::is_legal(move_t move) {
+	auto move_info = this->make_move(move);
+	this->_turn_color = player_color_fn::opposite(this->_turn_color);
+	
+	bool legal = !this->is_check();
+
+	this->_turn_color = player_color_fn::opposite(this->_turn_color);
+	this->unmake_move(move_info);
+	
+	return legal;
 }
 
 // Reviewed
@@ -279,16 +291,24 @@ const std::optional<piece_t>& board_t::piece(chess_coordinate_t coord) const {
 bool board_t::is_attacked(chess_coordinate_t coord) const {
 	player_color opp_color = player_color_fn::opposite(this->_turn_color);
 
+	std::vector<move_t> move_container;
+	move_container.reserve(28);
+
 	for (auto kind : { antipiece_kind::pawn, antipiece_kind::knight, 
 		antipiece_kind::bishop, antipiece_kind::rook, antipiece_kind::queen, 
-		antipiece_kind::king })
-	for (move_t move : gen_moves(kind, coord, opp_color, *this))
-	if (
-		this->piece(move.destination).has_value()
-		&& this->piece(move.destination).value().kind 
-			== piece_kind_fn::to_piece_kind(kind)
-	) return true;
+		antipiece_kind::king }) {
 
+		gen_moves(kind, coord, opp_color, *this, move_container);
+		
+		for (auto move : move_container)
+		if (this->piece(move.destination).has_value()
+		&& this->piece(move.destination).value().kind == 
+		piece_kind_fn::to_piece_kind(kind)
+		) return true;
+
+		move_container.clear();
+	}
+	
 	return false;
 }
 
@@ -409,13 +429,22 @@ bool board_t::is_check() const {
 	return king_coords.has_value() && this->is_attacked(king_coords.value());
 }
 
-// TODO:  Serious optimization needed here
-bool board_t::is_draw() const {
+// TODO:  Optimization needed here, redundancy of legal_moves call.
+bool board_t::is_draw() {
 	// Case 1 : Stalemate
-	if (this->legal_moves().size() == 0) return true;
+	std::vector<move_t> moves = this->pseudolegal_moves();
+	bool exists_legal_move = false;
+	
+	for (auto move : moves) 
+	if (this->is_legal(move)) {
+		exists_legal_move = true;
+		break;
+	}
 
-	int __piece_count = this->piece_count();
+	if (!exists_legal_move) { std::cout << "It's a draw!!!" << std::endl; return true; }
+
 	// Case 2 : Dead Position
+	int __piece_count = this->piece_count();
 	// King vs. King: Only two kings are left
 	if (__piece_count == this->piece_count(piece_kind::king)) return true;
 	
@@ -443,7 +472,7 @@ bool board_t::is_draw() const {
 	return false;
 }
 
-float board_t::score() const {
+float board_t::score() {
 	std::optional<player_color> _winning_player = this->winning_player();
 	if (_winning_player.has_value()) {
 		if (_winning_player.value() == this->turn_color())
@@ -454,22 +483,14 @@ float board_t::score() const {
 
 	if (this->is_draw()) return 0;
 	
-	// TODO: Change this back to using the piece counts
 	float score = 0;
 
-	/*
 	for (auto kind : { piece_kind::pawn, piece_kind::knight, piece_kind::bishop,
 		piece_kind::rook, piece_kind::queen })
 		score += piece_kind_fn::get_score(kind) * (
 			this->piece_count(player_color::white, kind)
 			- this->piece_count(player_color::black, kind)
 		);
-	*/
-	for (int column = 0; column < 8; column++)
-	for (int row = 0; row < 8; row++)
-	if (this->piece({ row, column }).has_value())
-		score += piece_kind_fn::get_score(this->piece({ row, column }).value().kind)
-		* (this->piece({ row, column }).value().color == player_color::white ? 1 : -1);
 
 	return score;
 }
@@ -631,7 +652,11 @@ move_info_t board_t::get_move_info(move_t move){
 }
 
 void board_t::unmake_move(move_info_t info){
-	this->position_count[this->to_bitset()]--;
+	board_t::hash_t current_hash = this->to_bitset();
+
+	this->position_count[current_hash]--;
+	if (this->position_count[current_hash] == 0)
+		this->position_count.erase(current_hash);
 
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
 
@@ -657,8 +682,8 @@ void board_t::unmake_move(move_info_t info){
 		&& std::abs(info.move.destination.column() - info.move.source.column()) > 1) {
 		// We move the rook, the king movement gets handled normally after
 		int castle_direction = info.move.destination.column() - info.move.source.column();
-		int rook_column = castle_direction == 1 ? 7 : 0;
-		int new_rook_column = castle_direction == 1 ? 5 : 3;
+		int rook_column = castle_direction > 0 ? 7 : 0;
+		int new_rook_column = castle_direction > 0 ? 5 : 3;
 	
 		this->piece({ info.move.source.row(), new_rook_column }) = std::nullopt;
 		this->piece({ info.move.source.row(), rook_column }) 

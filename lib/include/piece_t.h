@@ -10,6 +10,7 @@ struct piece_t {
 
 	piece_t(piece_kind, player_color);
 	
+	bool operator==(const piece_t&) const;
 };
 
 };
