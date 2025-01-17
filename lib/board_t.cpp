@@ -240,44 +240,10 @@ move_info_t board_t::make_move(move_t move) {
 	return info;
 }
 
-
-// Functions that helps for ordering the moves from here
-//------------------------------------------------------------------//
-int piece_score(piece_kind kind){
-	switch(kind){
-		case piece_kind::pawn: return 1;
-		case piece_kind::knight: return 3;
-		case piece_kind::bishop: return 3;
-		case piece_kind::rook: return 5;
-		case piece_kind::queen: return 9;
-		case piece_kind::king: return 200;
-	}
-}
-
-int move_score(board_t &board,move_t &move ){
-	int score = 0;
-	auto &mb_att = board.piece(move.source);
-    auto &mb_v   = board.piece(move.destination);
-	if (mb_att.has_value() && mb_att->kind==piece_kind::king && (move.destination.column()-move.destination.column()>1||move.destination.column()-move.destination.column()<-1 ))score+=3;
-	if (mb_att.has_value() && mb_v.has_value()){
-		int vscore = piece_score(mb_v->kind);
-		int attscore = piece_score(mb_att->kind);
-		score += (vscore - attscore) + 5;
-	}
-	if(move.promotion_code.has_value())score+=100;
-	move_info_t info = board.make_move(move);
-	if(board.is_check())score+=2;
-	board.unmake_move(info);
-	return score;
-}
-
-
-
 // Reviewed
 std::vector<move_t> board_t::pseudolegal_moves() const { 
-	std::vector<move_t> moves;
-	moves.reserve(16);
-
+	std::vector<move_t> re;
+	re.reserve(16);
 
 	for (int row = 0; row < 8; row++) {
 		for (int col = 0; col < 8; col++) {
@@ -285,40 +251,15 @@ std::vector<move_t> board_t::pseudolegal_moves() const {
 			const auto& mb_piece = this->piece(coord);
 
 			if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
-				gen_moves(mb_piece.value().kind, coord, this->_turn_color, *this, moves);
+				piece_t p = mb_piece.value();
+
+				gen_moves(p.kind, coord, this->_turn_color, *this, re);
 			}
 		}
 	}
 
-	//sorting the moves, im not sure it is themost efficient way
-	board_t copy = *this;
-	std::vector<int> scores;
-    scores.reserve(moves.size());
-	for (auto &move : moves){
-        scores.push_back(move_score(copy, move));
-    }
-	for (std::size_t i = 0; i < moves.size(); ++i){
-		for (std::size_t i = 0; i < moves.size(); ++i){
-        	std::size_t bsix = i;
-        	for (std::size_t j = i + 1; j < moves.size(); ++j){
-            	if (scores[j] > scores[bsix]){
-                	bsix = j;
-					}
-			}
-        	if (bsix != i){
-				move_t sort_move = moves[i];
-        		moves[i] = moves[bsix];
-        		moves[bsix] = sort_move;
-				
-            	int sort_score = scores[i];
-        		scores[i] = scores[bsix];
-        		scores[bsix] = sort_score;
-			}
-    }
-	}
-	return moves;
+	return re;
 }
-//------------------------------------------------------------------//
 
 // Reviewed
 std::optional<move_t> board_t::latest_move() const {
@@ -486,26 +427,6 @@ bool board_t::is_check() const {
 		this->king_coordinates(this->turn_color());
 	
 	return king_coords.has_value() && this->is_attacked(king_coords.value());
-}
-
-bool board_t::is_checkmate() {
-
-    if(!is_check()){
-        return false;
-    }
-
-    // Generate all possible moves for the current player
-    auto moves = pseudolegal_moves();
-
-    // Check if there is legal move
-    for(const auto& move : moves){
-        if(is_legal(move)){
-            return false; // Found a legal move, so not checkmate
-        }
-    }
-
-    // No legal moves and the player is in check
-    return true;
 }
 
 // TODO:  Optimization needed here, redundancy of legal_moves call.
