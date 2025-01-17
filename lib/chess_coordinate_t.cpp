@@ -65,3 +65,12 @@ std::ostream& operator<<(std::ostream& os, chess_coordinate_t coord) {
 
 // Reviewed
 bool chess_coordinate_t::operator == (const chess_coordinate_t& coor) const = default;
+
+
+std::string chess_coordinate_t::into_string(){
+	std::string re;
+
+	re = this->column_as_char() + std::to_string(this->row() + 1);
+
+	return re;
+}
