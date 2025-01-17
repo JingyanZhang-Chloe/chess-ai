@@ -46,6 +46,9 @@ std::vector<move_t> legal_moves(board_t& board) {
 
 		if (board != initial_board) {
 			std::cout << "[Legal Moves] Board not same after making and unmaking move" << std::endl;
+			std::cout << "Should be: " << std::endl;
+			std::cout << initial_board << std::endl;
+			std::cout << "But is: " << std::endl;
 			std::cout << board << std::endl;
 			throw;
 		}
