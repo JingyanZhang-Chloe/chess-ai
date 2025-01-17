@@ -322,7 +322,7 @@ const std::optional<piece_t>& board_t::piece(chess_coordinate_t coord) const {
 	return this->pieces[coord.index()];
 }
 
-bool board_t::is_attacked(chess_coordinate_t coord) const {
+bool board_t::is_attacked(chess_coordinate_t coord) {
 	player_color opp_color = player_color_fn::opposite(this->_turn_color);
 
 	std::vector<move_t> move_container;
