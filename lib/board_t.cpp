@@ -16,6 +16,7 @@ board_t::board_t()
 	white_king_or_right_rook_moved { false },
 	black_king_or_left_rook_moved { false },
 	black_king_or_right_rook_moved { false },
+	_king_coordinates {{chess_coordinate_t{ 0, 4 }, chess_coordinate_t{ 7, 4 }}},
 	__piece_count{{8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1}},
 	turns_since_capture_or_pawn_move{0}
 {
@@ -58,7 +59,12 @@ board_t::board_t()
 }
 
 // TODO: Input validation
-board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}} {
+board_t::board_t(std::string fen_string): 
+	white_king_or_left_rook_moved{ true },
+	white_king_or_right_rook_moved{ true },
+	black_king_or_left_rook_moved{ true },
+	black_king_or_right_rook_moved{ true },
+	__piece_count{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}} {
 	std::array<std::string, 6> fen_fields;
 	
 	for (int i = 0; i < 5; i++) {
@@ -77,6 +83,9 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
 		if (std::isdigit(c)) current_coordinate += c - '1'; 
 		else if (c == '/') continue;
 		else {
+			// Need to reflect the position because FEN is top-down
+			int index = (7 - (current_coordinate / 8)) * 8 + (current_coordinate % 8);
+
 			auto color = std::isupper(c) ? player_color::white : player_color::black;
 			piece_kind kind;
 
@@ -86,12 +95,15 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
             case 'r': kind = piece_kind::rook; break;
             case 'q': kind = piece_kind::queen; break;
             case 'b': kind = piece_kind::bishop; break;
-            case 'k': kind = piece_kind::king; break;
+            case 'k': 
+				kind = piece_kind::king;
+				this->_king_coordinates[static_cast<int>(color)] = 
+					chess_coordinate_t{ index }; 
+				break;
             }
 
+			this->pieces[index] = piece_t{ kind, color };
 			this->_piece_count(color, kind)++;
-
-			this->pieces[(7 - (current_coordinate / 8)) * 8 + (current_coordinate % 8)] = piece_t{ kind, color };
 		}
 
 		current_coordinate++;
@@ -126,7 +138,23 @@ board_t::board_t(std::string fen_string): __piece_count{{0, 0, 0, 0, 0, 0, 0, 0,
 	// We don't use the sixth field
 }
 
-bool board_t::operator==(const board_t&) const = default;
+bool board_t::operator==(const board_t& other) const {
+	// Check that everything is equal except cached info
+	return std::equal(
+		std::begin(this->pieces), 
+		std::end(this->pieces), 
+		std::begin(other.pieces)
+	) && this->turn_color() == other.turn_color()
+	&& this->latest_move() == other.latest_move()
+	&& this->white_king_or_left_rook_moved == other.white_king_or_left_rook_moved
+	&& this->white_king_or_right_rook_moved == other.white_king_or_right_rook_moved
+	&& this->black_king_or_left_rook_moved == other.black_king_or_left_rook_moved
+	&& this->black_king_or_right_rook_moved == other.black_king_or_right_rook_moved
+	&& this->_king_coordinates == other._king_coordinates
+	&& this->__piece_count == other.__piece_count
+	&& this->position_count == other.position_count
+	&& this->turns_since_capture_or_pawn_move == other.turns_since_capture_or_pawn_move;
+}
 
 // Reviewed
 move_info_t board_t::make_move(move_t move) {
@@ -150,6 +178,8 @@ move_info_t board_t::make_move(move_t move) {
 			this->black_king_or_left_rook_moved = true;
 			this->black_king_or_right_rook_moved = true;
 		}
+
+		this->_king_coordinates[static_cast<int>(this->turn_color())] = move.destination;
 	}
 	if (this->piece(move.source).value().kind == piece_kind::rook) {
 		if (this->_turn_color == player_color::white) {
@@ -191,12 +221,18 @@ move_info_t board_t::make_move(move_t move) {
 		)--;
 
 		this->turns_since_capture_or_pawn_move = 0;
+
+		piece_t captured_piece = this->piece(move.destination).value();
+
+		if (captured_piece.kind == piece_kind::king)
+			this->_king_coordinates[static_cast<int>(captured_piece.color)] = std::nullopt;
 	}
 
 	if(this->piece(move.source).value().kind == piece_kind::pawn){
 		if(abs(move.source.row() - move.destination.row()) == abs(move.source.column() - move.destination.column())){
 			if(!(this->piece(move.destination).has_value())){
 				// then it is en passant
+				std::cout << *this << std::endl;
 				std::cout << "we are handling an en passant, the evil pawn's coord: " << move.source << std::endl;
 
 
@@ -226,6 +262,13 @@ move_info_t board_t::make_move(move_t move) {
 		};
 	}
 
+	// Clear cache
+	this->_is_check = std::nullopt;
+	this->_is_draw = std::nullopt;
+	this->_pseudolegal_moves = std::nullopt;
+	this->current_hash = std::nullopt;
+
+
 	// Update game-state-related information
 	this->_turn_color = player_color_fn::opposite(this->_turn_color);
 	this->_latest_move = move;
@@ -236,89 +279,39 @@ move_info_t board_t::make_move(move_t move) {
 		this->position_count[current_hash]++;
 	else 
 		this->position_count.insert({ current_hash, 1 });
-
+	
+	
 	return info;
 }
 
-
-// Functions that helps for ordering the moves from here
-//------------------------------------------------------------------//
-int piece_score(piece_kind kind){
-	switch(kind){
-		case piece_kind::pawn: return 1;
-		case piece_kind::knight: return 3;
-		case piece_kind::bishop: return 3;
-		case piece_kind::rook: return 5;
-		case piece_kind::queen: return 9;
-		case piece_kind::king: return 200;
-	}
-}
-
-int move_score(board_t &board,move_t &move ){
-	int score = 0;
-	auto &mb_att = board.piece(move.source);
-    auto &mb_v   = board.piece(move.destination);
-	if (mb_att.has_value() && mb_att->kind==piece_kind::king && (move.destination.column()-move.destination.column()>1||move.destination.column()-move.destination.column()<-1 ))score+=3;
-	if (mb_att.has_value() && mb_v.has_value()){
-		int vscore = piece_score(mb_v->kind);
-		int attscore = piece_score(mb_att->kind);
-		score += (vscore - attscore) + 5;
-	}
-	if(move.promotion_code.has_value())score+=100;
-	move_info_t info = board.make_move(move);
-	if(board.is_check())score+=2;
-	board.unmake_move(info);
-	return score;
-}
-
-
-
 // Reviewed
-std::vector<move_t> board_t::pseudolegal_moves() const { 
-	std::vector<move_t> moves;
-	moves.reserve(16);
+std::vector<move_t> board_t::pseudolegal_moves() { 
+	if (!_pseudolegal_moves.has_value()) {
+		this->_pseudolegal_moves = std::vector<move_t>{};
+		this->_pseudolegal_moves.value().reserve(16);
 
+		for (int row = 0; row < 8; row++) {
+			for (int col = 0; col < 8; col++) {
+				chess_coordinate_t coord { row, col };
+				const auto& mb_piece = this->piece(coord);
 
-	for (int row = 0; row < 8; row++) {
-		for (int col = 0; col < 8; col++) {
-			chess_coordinate_t coord { row, col };
-			const auto& mb_piece = this->piece(coord);
+				if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
+					piece_t p = mb_piece.value();
 
-			if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
-				gen_moves(mb_piece.value().kind, coord, this->_turn_color, *this, moves);
+					gen_moves(
+						p.kind, 
+						coord, 
+						this->_turn_color, 
+						*this, 
+						this->_pseudolegal_moves.value()
+					);
+				}
 			}
 		}
 	}
 
-	//sorting the moves, im not sure it is themost efficient way
-	board_t copy = *this;
-	std::vector<int> scores;
-    scores.reserve(moves.size());
-	for (auto &move : moves){
-        scores.push_back(move_score(copy, move));
-    }
-	for (std::size_t i = 0; i < moves.size(); ++i){
-		for (std::size_t i = 0; i < moves.size(); ++i){
-        	std::size_t bsix = i;
-        	for (std::size_t j = i + 1; j < moves.size(); ++j){
-            	if (scores[j] > scores[bsix]){
-                	bsix = j;
-					}
-			}
-        	if (bsix != i){
-				move_t sort_move = moves[i];
-        		moves[i] = moves[bsix];
-        		moves[bsix] = sort_move;
-				
-            	int sort_score = scores[i];
-        		scores[i] = scores[bsix];
-        		scores[bsix] = sort_score;
-			}
-    }
-	}
-	return moves;
+	return this->_pseudolegal_moves.value();
 }
-//------------------------------------------------------------------//
 
 // Reviewed
 std::optional<move_t> board_t::latest_move() const {
@@ -347,7 +340,7 @@ const std::optional<piece_t>& board_t::piece(chess_coordinate_t coord) const {
 	return this->pieces[coord.index()];
 }
 
-bool board_t::is_attacked(chess_coordinate_t coord) const {
+bool board_t::is_attacked(chess_coordinate_t coord) {
 	player_color opp_color = player_color_fn::opposite(this->_turn_color);
 
 	std::vector<move_t> move_container;
@@ -404,17 +397,7 @@ int board_t::piece_count(player_color color, piece_kind kind) const {
 
 // Reviewed
 std::optional<chess_coordinate_t> board_t::king_coordinates(player_color color) const {
-	for (int row = 0; row < 8; row++) {
-		for (int column = 0; column < 8; column++) {
-			std::optional<piece_t> piece = this->piece({ row, column });
-
-			if (piece.has_value() && piece.value().color == color
-				&& piece.value().kind == piece_kind::king)
-				return chess_coordinate_t{ row, column };
-		}
-	}
-
-	return std::nullopt;
+	return this->_king_coordinates[static_cast<int>(color)];
 }
 
 // Reviewed
@@ -435,7 +418,7 @@ std::optional<player_color> board_t::winning_player() const {
 	return std::nullopt;
 }
 
-bool board_t::can_castle(board_t::side side) const {
+bool board_t::can_castle(board_t::side side) {
 	int castle_row;
 	bool king_or_rook_moved;
 
@@ -481,86 +464,100 @@ bool board_t::can_castle(board_t::side side) const {
 }
 
 // Reviewed
-bool board_t::is_check() const {
-	std::optional<chess_coordinate_t> king_coords = 
+bool board_t::is_check() {
+	if (!this->_is_check.has_value()) {
+		std::optional<chess_coordinate_t> king_coords = 
 		this->king_coordinates(this->turn_color());
-	
-	return king_coords.has_value() && this->is_attacked(king_coords.value());
-}
+		
+		this->_is_check = king_coords.has_value() 
+			&& this->is_attacked(king_coords.value());
+	}
 
-bool board_t::is_checkmate() {
-
-    if(!is_check()){
-        return false;
-    }
-
-    // Generate all possible moves for the current player
-    auto moves = pseudolegal_moves();
-
-    // Check if there is legal move
-    for(const auto& move : moves){
-        if(is_legal(move)){
-            return false; // Found a legal move, so not checkmate
-        }
-    }
-
-    // No legal moves and the player is in check
-    return true;
+	return this->_is_check.value();
 }
 
 // TODO:  Optimization needed here, redundancy of legal_moves call.
 bool board_t::is_draw() {
-	// Case 1 : Stalemate
-	std::vector<move_t> moves = this->pseudolegal_moves();
-	bool exists_legal_move = false;
-	
-	for (auto move : moves) 
-	if (this->is_legal(move)) {
-		exists_legal_move = true;
-		break;
-	}
+	if (this->_is_draw.has_value()) return this->_is_draw.value();
 
-	if (!exists_legal_move) { std::cout << "It's a draw!!!" << std::endl; return true; }
+	// Case 1 : Stalemate
+	if (!this->is_check()) {
+		std::vector<move_t> moves = this->pseudolegal_moves();
+		bool exists_legal_move = false;
+		
+		for (auto move : moves) 
+		if (this->is_legal(move)) {
+			exists_legal_move = true;
+			break;
+		}
+
+		if (!exists_legal_move) {
+			this->_is_draw = true;
+			return true;
+		}
+	}
 
 	// Case 2 : Dead Position
 	int __piece_count = this->piece_count();
 	// King vs. King: Only two kings are left
-	if (__piece_count == this->piece_count(piece_kind::king)) return true;
+	if (__piece_count == this->piece_count(piece_kind::king)) {
+		this->_is_draw = true;
+		return true; 
+	}
 	
 	//King and Bishop vs. King: A king with one bishop cannot checkmate
 	if (__piece_count == 3
 		&& this->piece_count(piece_kind::king) == 2
 		&& this->piece_count(piece_kind::bishop) == 1
-	) return true;
+	) {
+		this->_is_draw = true;
+		return true;
+	}
 
 	//King and Knight vs. King: A king with one knight cannot checkmate
 	if (__piece_count == 3
 		&& this->piece_count(piece_kind::king) == 2
 		&& this->piece_count(piece_kind::bishop) == 1
-	) return true;
+	) {
+		this->_is_draw = true;
+		return true;
+	}
 
 	// Case 3 : Threefold Repetition
 	hash_t current_hash = this->to_bitset();
 
 	if (this->position_count.contains(current_hash)
-		&& this->position_count.at(current_hash) >= 3) return true;
+		&& this->position_count.at(current_hash) >= 3) {
+		this->_is_draw = true;
+		return true;
+	}
 
 	// Case 4 : 50-Move Rule
-	if (this->turns_since_capture_or_pawn_move >= 50) return true;
+	if (this->turns_since_capture_or_pawn_move >= 50) {
+		this->_is_draw = true;
+		return true;
+	}
 
+	this->_is_draw = false;
 	return false;
+}
+
+bool board_t::is_game_over() {
+	return this->winning_player().has_value() || this->is_draw();
 }
 
 float board_t::score() {
 	std::optional<player_color> _winning_player = this->winning_player();
 	if (_winning_player.has_value()) {
-		if (_winning_player.value() == this->turn_color())
+		if (_winning_player.value() == player_color::white)
 			return std::numeric_limits<float>::infinity();
 		else
 			return -std::numeric_limits<float>::infinity();
 	}
 
-	if (this->is_draw()) return 0;
+	if (this->is_draw()) {
+		return -1;
+	}
 	
 	float score = 0;
 
@@ -660,60 +657,44 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 	return os;
 };
 
-std::bitset<265> board_t::to_bitset() const {   //do not consider en passant state
-	std::bitset<265> key;
-	std::size_t bit = 0;
-	for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
+// EMERGENCY: Consider en passant
+std::bitset<265> board_t::to_bitset() {
+	if (!this->current_hash.has_value()) {
+		this->current_hash = hash_t{};
+		std::size_t bit = 0;
+
+		for (int row = 0; row < 8; row++)
+		for (int col = 0; col < 8; col++) {
 			chess_coordinate_t coord { row, col };
 			const auto& mb_piece = this->piece(coord);
+
 			if (mb_piece.has_value()) {
 				piece_t current_piece = mb_piece.value();
-				int color_hash;
-				int piece_kind_hash = 0;
-				if (current_piece.color == player_color::white) {
-    				color_hash = 0;
-				} else {
-    				color_hash = 6;
-				}
-				switch(current_piece.kind) {
-					case piece_kind::pawn:
-						piece_kind_hash = 1; 
-						break;
-                    case piece_kind::knight:
-						piece_kind_hash = 2; 
-						break;
-                    case piece_kind::bishop: 
-						piece_kind_hash = 3; 
-						break;
-                    case piece_kind::rook:   
-						piece_kind_hash = 4; 
-						break;
-                    case piece_kind::queen:  
-						piece_kind_hash = 5; 
-						break;
-                    case piece_kind::king:   
-						piece_kind_hash = 6; 
-						break;
-				}
-				int piece_hash = piece_kind_hash + color_hash;
-				key.set(bit + piece_hash);
-				for (int b = 0; b < 4; ++b) {
-                	key.set(bit + b, (piece_hash >> b) & 1);
-            	}
+
+				int kind_hash = static_cast<int>(current_piece.kind);
+				
+				for (int c = 0; c < 3; c++) 
+					this->current_hash.value().set(bit, (kind_hash >> c) & 1);
+
+				bit += 3;
+				this->current_hash.value().set(
+					bit++, current_piece.color == player_color::white
+				);
 			}
-			else{
-				key.set(bit + 0);
+			else {
+				bit += 4;
 			}
-			bit += 4;
 		}
+
+		this->current_hash.value().set(bit++, this->white_king_or_left_rook_moved);
+		this->current_hash.value().set(bit++, this->white_king_or_right_rook_moved);
+		this->current_hash.value().set(bit++, this->black_king_or_left_rook_moved);
+		this->current_hash.value().set(bit++, this->black_king_or_right_rook_moved);
+		// EMERGENCY: Remove this when bug is fixed
+		//this->current_hash.value().set(bit++, this->_turn_color == player_color::white);
 	}
-	key.set(bit++, this->white_king_or_left_rook_moved);
-    key.set(bit++, this->white_king_or_right_rook_moved);
-    key.set(bit++, this->black_king_or_left_rook_moved);
-    key.set(bit++, this->black_king_or_right_rook_moved);
-	key.set(bit++, this->_turn_color == player_color::white);
-	return key;
+
+	return this->current_hash.value();
 }
 
 
@@ -726,7 +707,11 @@ move_info_t board_t::get_move_info(move_t move){
 		this->white_king_or_right_rook_moved, 
 		this->black_king_or_left_rook_moved, 
 		this->black_king_or_right_rook_moved, 
-		this->turns_since_capture_or_pawn_move 
+		this->turns_since_capture_or_pawn_move,
+		this->_is_check,
+		this->_is_draw,
+		this->_pseudolegal_moves,
+		this->current_hash
 	};
 }
 
@@ -756,21 +741,29 @@ void board_t::unmake_move(move_info_t info){
 	this->piece(info.move.source) = this->piece(info.move.destination);
 	this->piece(info.move.destination) = info.captured_piece;
 
-	// Handle the case where the king is castling
-	if (this->piece(info.move.source).value().kind == piece_kind::king
-		&& std::abs(info.move.destination.column() - info.move.source.column()) > 1) {
-		// We move the rook, the king movement gets handled normally after
-		int castle_direction = info.move.destination.column() - info.move.source.column();
-		int rook_column = castle_direction > 0 ? 7 : 0;
-		int new_rook_column = castle_direction > 0 ? 5 : 3;
+	piece_t source_piece = this->piece(info.move.source).value();
+
+	if (source_piece.kind == piece_kind::king) {
+		// Handle the case where the king castled
+		if (std::abs(info.move.destination.column() - info.move.source.column()) > 1) {
+			// We move the rook, the king movement gets handled normally after
+			int castle_direction = info.move.destination.column() 
+				- info.move.source.column();
+
+			int rook_column = castle_direction > 0 ? 7 : 0;
+			int new_rook_column = castle_direction > 0 ? 5 : 3;
 	
-		this->piece({ info.move.source.row(), new_rook_column }) = std::nullopt;
-		this->piece({ info.move.source.row(), rook_column }) 
-			= piece_t{ piece_kind::rook, this->_turn_color };
+			this->piece({ info.move.source.row(), new_rook_column }) = std::nullopt;
+			this->piece({ info.move.source.row(), rook_column }) 
+				= piece_t{ piece_kind::rook, this->_turn_color };
+		}
+
+		this->_king_coordinates[static_cast<int>(source_piece.color)] =
+			info.move.source;
 	}
 	
-	//handle en passant
-	if(this->piece(info.move.source).value().kind == piece_kind::pawn){
+	// Handle en passant
+	if(source_piece.kind == piece_kind::pawn){
 		if(abs(info.move.source.row() - info.move.destination.row()) == abs(info.move.source.column() - info.move.destination.column())){
 			if(!(info.captured_piece.has_value())){
 				// then it is en passant
@@ -786,6 +779,19 @@ void board_t::unmake_move(move_info_t info){
 		}
 	}
 
-	if (info.captured_piece.has_value())
-		this->_piece_count(info.captured_piece.value().color, info.captured_piece.value().kind)++;
+	if (info.captured_piece.has_value()) {
+		piece_t captured_piece = info.captured_piece.value();
+
+		this->_piece_count(captured_piece.color, captured_piece.kind)++;
+
+		if (captured_piece.kind == piece_kind::king)
+			this->_king_coordinates[static_cast<int>(captured_piece.color)]
+				= info.move.destination;
+	}
+
+	// Restore cached info
+	this->_is_check = info.is_check;
+	this->_is_draw = info.is_draw;
+	this->current_hash = info.current_hash;
+	this->_pseudolegal_moves = info.pseudolegal_moves;
 }
