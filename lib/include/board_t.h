@@ -54,6 +54,7 @@ public:
 	bool can_castle(side);
 	
 	bool is_check();
+	bool is_checkmate();
 	bool is_draw();
 	bool is_game_over();
 

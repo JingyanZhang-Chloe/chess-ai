@@ -94,7 +94,6 @@ std::optional<move_t> minmax_strategy(board_t& board, int depth = 4) {
 	
 	for (move_t move : board.pseudolegal_moves()) {
 		move_info_t move_info = board.make_move(move);
-
 		float score = minmax(board, depth - 1, cache);
 		board.unmake_move(move_info);
 
