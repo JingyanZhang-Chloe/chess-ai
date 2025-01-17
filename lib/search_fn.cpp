@@ -7,7 +7,7 @@
 using namespace engine;
 using namespace engine::minmax_types;
 
-float engine::min_pass(board_t& board, int depth, cache_t& cache) {
+float engine::min_pass(board_t& board, int depth, float alpha, float beta, cache_t& cache) {
 	if (depth == 0) return board.score();
 
 	board_t::hash_t board_hash = board.to_bitset();
@@ -20,18 +20,20 @@ float engine::min_pass(board_t& board, int depth, cache_t& cache) {
 	for (move_t move : board.pseudolegal_moves()) {
 		move_info_t move_info = board.make_move(move);
 
-		float score = max_pass(board, depth - 1, cache);
+		float score = max_pass(board, depth - 1, alpha, beta, cache);
 
 		board.unmake_move(move_info);
 
 		if (score < min_score) min_score = score;
+		if (min_score <= alpha) break;
+		if (min_score < beta) beta = min_score;
 	}
 
 	cache[board_hash] = { depth, min_score }; 
 	return min_score;
 }
 
-float engine::max_pass(board_t& board, int depth, cache_t& cache) {
+float engine::max_pass(board_t& board, int depth, float alpha, float beta, cache_t& cache) {
 	if (depth == 0) return board.score();
 
 	board_t::hash_t board_hash = board.to_bitset();
@@ -44,11 +46,13 @@ float engine::max_pass(board_t& board, int depth, cache_t& cache) {
 	for (move_t move : board.pseudolegal_moves()) {
 		move_info_t move_info = board.make_move(move);
 
-		float score = min_pass(board, depth - 1, cache);
+		float score = min_pass(board, depth - 1, alpha, beta, cache);
 
 		board.unmake_move(move_info);
 
 		if (score > max_score) max_score = score;
+		if (max_score >= beta) break;
+		if (max_score > alpha) alpha = max_score;
 	}
 
 	cache[board_hash] = { depth, max_score }; 
@@ -58,12 +62,13 @@ float engine::max_pass(board_t& board, int depth, cache_t& cache) {
 
 float engine::minmax(board_t& board, int depth) {
 	cache_t cache;
-
-	return engine::minmax(board, depth, cache);
+	float alpha = -std::numeric_limits<float>::infinity();
+    float beta  =  std::numeric_limits<float>::infinity();
+	if (board.turn_color() == player_color::white) {
+		return max_pass(board, depth, alpha, beta, cache);
+    } else {
+        return min_pass(board, depth, alpha, beta, cache);
+    }
 }
 
-float engine::minmax(board_t& board, int depth, cache_t& cache) {
-	return board.turn_color() == player_color::white
-		? max_pass(board, depth, cache)
-		: min_pass(board, depth, cache);
-}
+
