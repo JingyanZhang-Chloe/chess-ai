@@ -54,6 +54,7 @@ public:
 	bool can_castle(side) const;
 	
 	bool is_check() const;
+	bool is_checkmate();
 	bool is_draw();
 
 	float score();
