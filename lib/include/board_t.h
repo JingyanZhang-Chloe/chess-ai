@@ -35,7 +35,7 @@ public:
 	std::optional<piece_t>& piece(chess_coordinate_t);
 	const std::optional<piece_t>& piece(chess_coordinate_t) const;
 
-	bool is_attacked(chess_coordinate_t) const;
+	bool is_attacked(chess_coordinate_t);
 
 	int piece_count() const;
 	int piece_count(player_color) const;

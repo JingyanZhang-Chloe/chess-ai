@@ -18,7 +18,7 @@ bool add_if_empty_or_opponent(
 	chess_coordinate_t source,
 	chess_coordinate_t destination, 
 	player_color current_player, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& moves
 ) {
 	auto piece = board.piece(destination);
@@ -41,7 +41,7 @@ template<>
 void engine::gen_moves<piece_kind::rook>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	// Loop right
@@ -78,7 +78,7 @@ template<>
 void engine::gen_moves<piece_kind::bishop>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	// Loop south-west
@@ -115,7 +115,7 @@ template<>
 void engine::gen_moves<piece_kind::knight>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	using listlist = std::array<std::pair<int, int>, 2>;
@@ -135,7 +135,7 @@ template<>
 void engine::gen_moves<piece_kind::queen>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
     gen_moves<piece_kind::bishop>(source, color, board, out);
@@ -145,7 +145,7 @@ void engine::gen_moves<piece_kind::queen>(
 void pawn_noncapturing_advances(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	int initial_row = 1;
@@ -183,7 +183,7 @@ void pawn_noncapturing_advances(
 void pawn_simple_captures(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	int y_direction = 1;
@@ -227,7 +227,7 @@ void pawn_simple_captures(
 void pawn_en_passant(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	int y_direction = 1;
@@ -265,7 +265,7 @@ template<>
 void engine::gen_moves<piece_kind::pawn>(
 	chess_coordinate_t coord, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	pawn_noncapturing_advances(coord, color, board, out);
@@ -278,7 +278,7 @@ template<>
 void engine::gen_moves<piece_kind::king>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	// Simple movements
@@ -306,7 +306,7 @@ template<>
 void engine::gen_moves<antipiece_kind::rook>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	gen_moves<piece_kind::rook>(source, player_color_fn::opposite(color), board, out);
@@ -317,7 +317,7 @@ template<>
 void engine::gen_moves<antipiece_kind::bishop>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	gen_moves<piece_kind::bishop>(source, player_color_fn::opposite(color), board, out);
@@ -328,7 +328,7 @@ template<>
 void engine::gen_moves<antipiece_kind::queen>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	gen_moves<piece_kind::queen>(source, player_color_fn::opposite(color), board, out);
@@ -339,7 +339,7 @@ template<>
 void engine::gen_moves<antipiece_kind::knight>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	gen_moves<piece_kind::knight>(source, player_color_fn::opposite(color), board, out);
@@ -350,7 +350,7 @@ template<>
 void engine::gen_moves<antipiece_kind::king>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	color = player_color_fn::opposite(color);
@@ -372,7 +372,7 @@ template<>
 void engine::gen_moves<antipiece_kind::pawn>(
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	color = player_color_fn::opposite(color);
@@ -397,7 +397,7 @@ void engine::gen_moves(
 	piece_kind kind, 
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	switch (kind) {
@@ -421,7 +421,7 @@ void engine::gen_moves(
 	antipiece_kind kind, 
 	chess_coordinate_t source, 
 	player_color color, 
-	const board_t& board,
+	board_t& board,
 	std::vector<move_t>& out
 ) {
 	switch (kind) {
