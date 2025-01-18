@@ -6,6 +6,7 @@
 #include <player_color.h>
 #include <piece_kind.h>
 #include <gen_move_fn.h>
+#include <algorithm>
 
 using namespace engine;
 
@@ -284,34 +285,78 @@ move_info_t board_t::make_move(move_t move) {
 	return info;
 }
 
+
+// Functions that helps for ordering the moves from here
+//------------------------------------------------------------------//
+int piece_score(piece_kind kind){
+	switch(kind){
+		case piece_kind::pawn: return 1;
+		case piece_kind::knight: return 3;
+		case piece_kind::bishop: return 3;
+		case piece_kind::rook: return 5;
+		case piece_kind::queen: return 9;
+		case piece_kind::king: return 200;
+	}
+}
+
+int move_score(board_t &board,move_t &move ){
+	int score = 0;
+	auto &mb_att = board.piece(move.source);
+    auto &mb_v   = board.piece(move.destination);
+	if (mb_att.has_value() && mb_att->kind==piece_kind::king && (move.destination.column()-move.source.column()>1||move.destination.column()-move.source.column()<-1 ))score+=3;
+	if (mb_att.has_value() && mb_v.has_value()){
+		int vscore = piece_score(mb_v->kind);
+		int attscore = piece_score(mb_att->kind);
+		score += (vscore - attscore) + 5;
+	}
+	if(move.promotion_code.has_value())score+=100;
+	return score;
+}
+
+
+
 // Reviewed
 std::vector<move_t> board_t::pseudolegal_moves() { 
 	if (!_pseudolegal_moves.has_value()) {
-		this->_pseudolegal_moves = std::vector<move_t>{};
-		this->_pseudolegal_moves.value().reserve(16);
+		std::vector<move_t> moves;
+		moves.reserve(18);
 
-		for (int row = 0; row < 8; row++) {
-			for (int col = 0; col < 8; col++) {
-				chess_coordinate_t coord { row, col };
-				const auto& mb_piece = this->piece(coord);
 
-				if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
-					piece_t p = mb_piece.value();
+	for (int row = 0; row < 8; row++) {
+		for (int col = 0; col < 8; col++) {
+			chess_coordinate_t coord { row, col };
+			const auto& mb_piece = this->piece(coord);
 
-					gen_moves(
-						p.kind, 
-						coord, 
-						this->_turn_color, 
-						*this, 
-						this->_pseudolegal_moves.value()
-					);
-				}
+			if (mb_piece.has_value() && mb_piece.value().color == this->_turn_color) {
+				gen_moves(mb_piece.value().kind, coord, this->_turn_color, *this, moves);
 			}
 		}
 	}
 
+	//sorting the moves, im not sure it is themost efficient way
+	board_t copy = *this;
+	std::vector<std::pair<int, move_t>> score_moves;
+    score_moves.reserve(moves.size());
+	for (auto &move : moves){
+		int score = move_score(copy, move);
+        score_moves.push_back({ score, move });
+    }
+
+	std::sort(score_moves.begin(), score_moves.end(),
+            [](const auto &lhs, const auto &rhs) {
+                return lhs.first > rhs.first; // Thanks to internet for this sorting technique
+            }
+        );
+	std::vector<move_t> nicemoves;
+	 moves.reserve(score_moves.size());
+    for (auto &p : score_moves) {
+            nicemoves.push_back(p.second);
+        }
+	_pseudolegal_moves = std::move(nicemoves);
+	}
 	return this->_pseudolegal_moves.value();
 }
+//------------------------------------------------------------------//
 
 // Reviewed
 std::optional<move_t> board_t::latest_move() const {
