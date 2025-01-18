@@ -19,6 +19,11 @@ today i implement the function for unamke the move for the board, to do so, i cr
 
 today i modify and debug of make move and unmake move. handling the case of castiling and en passant.
 
+today I add into_string for moves, and i create a lot of functions for converting the pgn format of move into uci for providing our engine a better referee to the opening moves, now we gonna add some master games into the engine referee for it to search the beginning move efficiently.
+
+
+
+
 
 Meet 1: We got together in the TD session to kick things off. We set up the project environment and put together the CMakeLists.txt file to manage the build system. After that, we created a GitLab repository, set up our branches, and got familiar with committing and merging changes into the main branch. It was a productive start that laid the groundwork for working as a team.
 

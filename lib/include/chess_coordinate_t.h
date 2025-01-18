@@ -8,6 +8,7 @@ namespace engine {
 class chess_coordinate_t {
 	public:
 		chess_coordinate_t(int row, int column);
+		chess_coordinate_t(int index);
 		chess_coordinate_t(const std::string&);
 		
 		int8_t row();
@@ -16,6 +17,8 @@ class chess_coordinate_t {
 		int8_t index();
 
 		bool operator == (const chess_coordinate_t& coor) const;
+
+		std::string into_string();
 	
 	private:
 		int8_t coordinate;

@@ -13,6 +13,15 @@ chess_coordinate_t::chess_coordinate_t(int row, int column) {
 }
 
 // Reviewed
+chess_coordinate_t::chess_coordinate_t(int index) {
+	if (index < 0 || index >= 64) {
+		throw "[Chess Coordinate Error] Index out of range.";
+	}
+
+	this->coordinate = static_cast<int8_t>(index);
+}
+
+// Reviewed
 chess_coordinate_t::chess_coordinate_t(const std::string& coordinate_spec) {
 	if (coordinate_spec.size() < 2) {
 		throw "[Chess Coordinate Error] The specification string is too small.";
@@ -65,3 +74,12 @@ std::ostream& operator<<(std::ostream& os, chess_coordinate_t coord) {
 
 // Reviewed
 bool chess_coordinate_t::operator == (const chess_coordinate_t& coor) const = default;
+
+
+std::string chess_coordinate_t::into_string(){
+	std::string re;
+
+	re = this->column_as_char() + std::to_string(this->row() + 1);
+
+	return re;
+}
