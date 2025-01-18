@@ -476,6 +476,27 @@ bool board_t::is_check() {
 	return this->_is_check.value();
 }
 
+
+bool board_t::is_checkmate() {
+
+    if(!is_check()){
+        return false;
+    }
+
+    // Generate all possible moves for the current player
+    auto moves = pseudolegal_moves();
+
+    // Check if there is legal move
+    for(const auto& move : moves){
+        if(is_legal(move)){
+            return false; // Found a legal move, so not checkmate
+        }
+    }
+
+    // No legal moves and the player is in check
+    return true;
+}
+
 // TODO:  Optimization needed here, redundancy of legal_moves call.
 bool board_t::is_draw() {
 	if (this->_is_draw.has_value()) return this->_is_draw.value();

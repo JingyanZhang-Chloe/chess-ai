@@ -34,10 +34,14 @@ std::string engine::to_san(move_t move, board_t& board){
         default: throw "[Error in to_san: ] Unknown piece type";
     };
 
+    bool file_really_needed = true;
+
+
     if(kind == piece_kind::pawn){
         if(abs(move.source.row() - move.destination.row()) == abs(move.source.column() - move.destination.column())){
             // pawn is capture a piece
             san += move.source.column_as_char();
+            file_really_needed = false;
             if(!(board.piece(move.destination).has_value())){
 				// then it is en passant
 				san += "x";
@@ -50,10 +54,10 @@ std::string engine::to_san(move_t move, board_t& board){
     };
 
     //std::cout << "[AFTER the first char] " << "san is " << san << std::endl;
-
+    bool file_needed = false, rank_needed = false;
     // Handle ambiguity: Check if multiple pieces can reach the target
     std::vector<move_t> candidates = board.pseudolegal_moves();
-    bool file_needed = false, rank_needed = false;
+
     for (auto& candidate : candidates) {
         if (candidate.destination == move.destination && candidate != move &&
             board.piece(candidate.source)->kind == piece->kind) {
@@ -71,7 +75,7 @@ std::string engine::to_san(move_t move, board_t& board){
 
 
     //add the second elem of san
-    if (file_needed) {
+    if (file_needed && file_really_needed) {
         san += move.source.column_as_char(); // Ensure column is valid
     }
     if (rank_needed) {
