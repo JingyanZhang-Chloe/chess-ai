@@ -246,7 +246,7 @@ void pawn_en_passant(
 	if (board.piece(last_move.destination).value().kind != piece_kind::pawn)
 		return;
 
-	int walk_distance = (last_move.destination.row() - last_move.source.row()) 
+	int walk_distance = (last_move.source.row() - last_move.destination.row()) 
 		* y_direction;
 	
 	if (walk_distance != 2) return;
