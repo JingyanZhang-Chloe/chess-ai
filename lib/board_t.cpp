@@ -232,8 +232,8 @@ move_info_t board_t::make_move(move_t move) {
 		if(abs(move.source.row() - move.destination.row()) == abs(move.source.column() - move.destination.column())){
 			if(!(this->piece(move.destination).has_value())){
 				// then it is en passant
-				std::cout << *this << std::endl;
-				std::cout << "we are handling an en passant, the evil pawn's coord: " << move.source << std::endl;
+				//std::cout << *this << std::endl;
+				//std::cout << "we are handling an en passant, the evil pawn's coord: " << move.source << std::endl;
 
 
 				if(!(this->piece({move.source.row(), move.destination.column()}).has_value()) || this->piece({move.source.row(), move.destination.column()}).value().kind != piece_kind::pawn){
