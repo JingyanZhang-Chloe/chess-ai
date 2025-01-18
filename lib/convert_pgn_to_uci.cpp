@@ -95,7 +95,6 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
         if(line.empty() && game.empty() != true){
             gamenumber ++;
             //std::cout << "[GAME " << gamenumber << "]" << std::endl;
-            board_t board;
 
             std::stringstream gameStream(game); // to make the game string into token separated by space
 
@@ -155,22 +154,28 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
             //now turn the SAN form into UCI form
 
             bool if_continue = true;
+            board_t test_board;
+            std::vector<std::string> my_uci;
+
             for(std::string san : sanMoves){
+
                 try{
-                    std::string uci = san_to_uci(san, board);
+                    std::string uci = san_to_uci(san, test_board);
+                    test_board.make_move(uci);
+                    my_uci.push_back(uci);
+
                 } catch (const char* str) {
                     std::cout << str << std::endl;
                     std::cout << "skip the game " << gamenumber << std::endl;
                     if_continue = false;
+                    break;
                 }
             };
 
 
             if(if_continue){
-                for(std::string san : sanMoves){
-                    std::string uci = san_to_uci(san, board);
+                for(std::string uci : my_uci){
                     outputFile << uci << std::endl;
-                    board.make_move(move_t{uci});
                     //std::cout << "MOVEEEEE the board : " << uci << " from the san value : " << san << std::endl;
                 };
             };
