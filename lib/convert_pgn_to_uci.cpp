@@ -28,9 +28,33 @@ std::string engine::san_to_uci(std::string& san, board_t& board){
             continue;
         }
 
-        //std::cout << "***For move: " << move << " we get the san value by to_san as: " << to_san(move, board) << std::endl;
+        std::cout << "***For move: " << move << " we get the san value by to_san as: " << to_san(move, board) << std::endl;
         
         if(to_san(move, board) == san){
+            if(move.promotion_code.has_value()){
+                switch (move.promotion_code.value())
+                {
+                case piece_kind::queen : 
+                    return move.source.into_string() + move.destination.into_string() + "q";
+                    break;
+
+                case piece_kind::bishop :
+                    return move.source.into_string() + move.destination.into_string() + "b";
+                    break;
+
+                case piece_kind::knight :
+                    return move.source.into_string() + move.destination.into_string() + "k";
+                    break;
+
+                case piece_kind::rook :
+                    return move.source.into_string() + move.destination.into_string() + "r";
+                    break;
+                
+                default:
+                    break;
+                };
+            };
+
             return move.source.into_string() + move.destination.into_string();
         }
     }
@@ -44,7 +68,7 @@ std::string engine::san_to_uci(std::string& san, board_t& board){
             continue;
         }
 
-        std::cout << "***For move: " << move << " we get the san value by to_san as: " << to_san(move, board) << std::endl;
+        //std::cout << "***For move: " << move << " we get the san value by to_san as: " << to_san(move, board) << std::endl;
     }
 
     throw "[Error in san_to_uci: ] invalid san value";
@@ -120,9 +144,11 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
 
             //print out the sanMoves
             
+            /*
             for(std::string san : sanMoves){
                 std::cout << "[the san is]" << san << std::endl;
             };
+            */
             
             
             
@@ -133,7 +159,7 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
                 std::string uci = san_to_uci(san, board);
                 outputFile << uci << std::endl;
                 board.make_move(move_t{uci});
-                std::cout << "MOVEEEEE the board : " << uci << std::endl;
+                std::cout << "MOVEEEEE the board : " << uci << " from the san value : " << san << std::endl;
             }
             outputFile.close();
             game.clear();
