@@ -4,14 +4,36 @@ using namespace engine;
 
 std::string engine::to_san(move_t move, board_t& board){
 
+    std::string san;
     // handle castling
     if(board.piece(move.source).value().kind == piece_kind::king){
         if(move.source.column() - move.destination.column() == -2){
-            return "O-O";
+            san =  "O-O";
+
+            move_info_t info = board.make_move(move);
+
+            if (board.is_check()) {
+                san += board.is_checkmate() ? '#' : '+';
+            };
+
+            board.unmake_move(info);
+
+            return san;
+
         }
         else if (move.source.column() - move.destination.column() == 2)
         {
-            return "O-O-O";
+            san = "O-O-O";
+
+            move_info_t info = board.make_move(move);
+
+            if (board.is_check()) {
+                san += board.is_checkmate() ? '#' : '+';
+            };
+
+            board.unmake_move(info);
+
+            return san;
         };
     };
 
@@ -21,7 +43,6 @@ std::string engine::to_san(move_t move, board_t& board){
     }
 
     // get the piecekind
-    std::string san;
     char piece_char;
     auto kind = piece.value().kind;
     switch (kind) {
@@ -42,7 +63,7 @@ std::string engine::to_san(move_t move, board_t& board){
             // pawn is capture a piece
             san += move.source.column_as_char();
             file_really_needed = false;
-            
+
             if(!(board.piece(move.destination).has_value())){
 				// then it is en passant
 				san += "x";
@@ -132,6 +153,7 @@ std::string engine::to_san(move_t move, board_t& board){
 
 
     move_info_t info = board.make_move(move);
+
     if (board.is_check()) {
         san += board.is_checkmate() ? '#' : '+';
     };
