@@ -93,9 +93,9 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
 
         // this is the end of one game block
         if(line.empty() && game.empty() != true){
+            gamenumber ++;
             std::cout << "[GAME " << gamenumber << "]" << std::endl;
             board_t board;
-            gamenumber ++;
 
             std::stringstream gameStream(game); // to make the game string into token separated by space
 
@@ -217,7 +217,11 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
         std::vector<std::string> sanMoves;
         
         while (moveStream >> move) {
-            sanMoves.push_back(move);
+            
+            if(move.find('.') == std::string::npos){
+                sanMoves.push_back(move);
+            };
+            
         }
 
         //now in the vector sanMoves, we have all the moves but in the form of SAN
