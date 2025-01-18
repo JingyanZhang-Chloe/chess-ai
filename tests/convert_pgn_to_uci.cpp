@@ -4,7 +4,7 @@
 int main(){
 
     try{
-        engine::convert("master_games.pgn", "output_games");
+        engine::convert_dir("input_games", "output_games");
     } catch (const char* str) {
         std::cout << str << std::endl;
     }

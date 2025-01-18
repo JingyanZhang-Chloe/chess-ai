@@ -236,3 +236,16 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
 
     std::cout << "Processed " << gamenumber << " games." << std::endl;
 }
+
+void engine::convert_dir(const std::string& inputDir, const std::string& outputDir){
+    try {
+        // Iterate through each entry in the directory
+        for (const auto& entry : std::filesystem::directory_iterator(inputDir)) {
+            if (std::filesystem::is_regular_file(entry)) { // Check if the entry is a regular file
+                convert(entry.path(), outputDir);
+            }
+        }
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Error accessing directory: " << e.what() << std::endl;
+    }
+}
