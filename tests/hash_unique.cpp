@@ -1,4 +1,3 @@
-#include <cardboard_t.h>
 #include <board_t.h>
 #include <unordered_set>
 #include <random>
