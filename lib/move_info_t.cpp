@@ -17,7 +17,7 @@ move_info_t::move_info_t(
 	std::optional<bool> is_check,
 	std::optional<bool> is_draw,
 	std::optional<std::vector<move_t>> pseudolegal_moves,
-	std::optional<std::bitset<265>> current_hash
+	std::optional<cardboard_t> current_hash
 ) : move{move}, 
 	captured_piece{captured_piece},
 	last_move{last_move},

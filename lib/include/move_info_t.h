@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
-#include <bitset>
 #include <move_t.h>
 #include <piece_t.h>
+#include <cardboard_t.h>
 
 namespace engine {
 
@@ -19,7 +19,7 @@ struct move_info_t {
 	std::optional<bool> is_check;
 	std::optional<bool> is_draw;
 	std::optional<std::vector<move_t>> pseudolegal_moves;
-	std::optional<std::bitset<265>> current_hash;
+	std::optional<cardboard_t> current_hash;
 
     move_info_t(
 		move_t, 
@@ -33,7 +33,7 @@ struct move_info_t {
 		std::optional<bool>,
 		std::optional<bool>,
 		std::optional<std::vector<move_t>>,
-		std::optional<std::bitset<265>>
+		std::optional<cardboard_t>
 	);
 };
 
