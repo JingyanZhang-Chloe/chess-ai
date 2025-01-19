@@ -41,4 +41,17 @@ cardboard_t::cardboard_t(
 	}
 }
 
-std::strong_ordering cardboard_t::operator<=>(const cardboard_t&) const = default;
+std::size_t std::hash<cardboard_t>::operator()(const cardboard_t& cardboard) const {
+	std::hash<std::uint64_t> hash64;
+	std::hash<std::uint8_t> hash8;
+
+	std::size_t re = 0;
+
+	for (int i = 0; i < 1; i++) {
+		re ^= hash64(cardboard.piece_blocks[i]);
+	}
+	
+	re ^= hash8(cardboard.rights_block);
+
+	return re;
+}

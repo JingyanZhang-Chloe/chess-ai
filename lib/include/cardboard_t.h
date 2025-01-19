@@ -17,7 +17,10 @@ public:
 		bool
 	);
 
-	std::strong_ordering operator<=>(const cardboard_t&) const;
+	bool operator==(const cardboard_t&) const = default;
+	std::strong_ordering operator<=>(const cardboard_t&) const = default;
+
+	friend std::hash<cardboard_t>;
 
 private:
 	std::array<std::uint64_t, 4> piece_blocks;
@@ -25,3 +28,9 @@ private:
 };
 
 }
+
+template<>
+class std::hash<engine::cardboard_t> {
+public:
+	std::size_t operator()(const engine::cardboard_t&) const;
+};
