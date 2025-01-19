@@ -1,5 +1,6 @@
 #include <chrono>
 #include <board_t.h>
+#include <strategy_fn.h>
 
 using namespace engine;
 
@@ -35,12 +36,21 @@ int main() {
 
 	board_t start_board;
 	
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 5; i++) {
 		start_time = high_resolution_clock::now();
 		int result = perft(start_board, i);
 		end_time = high_resolution_clock::now();
 
 		std::cout << "Perft " << i << " is: " << result << ". It tooks "
+		<< duration_cast<milliseconds>(end_time - start_time).count() << "ms." << std::endl;
+	}
+
+	for (int i = 1; i < 10; i++) {
+		start_time = high_resolution_clock::now();
+		strategies::minmax(start_board, i);
+		end_time = high_resolution_clock::now();
+
+		std::cout << "Running minmax with depth " << i << ". It tooks "
 		<< duration_cast<milliseconds>(end_time - start_time).count() << "ms." << std::endl;
 	}
 }
