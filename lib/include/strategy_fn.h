@@ -4,8 +4,6 @@
 
 namespace engine::strategies {
 
-move_t random(board_t&);
-
-move_t minmax(board_t&);
+move_t minmax(board_t&, int depth = 4);
 
 }
