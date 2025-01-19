@@ -33,7 +33,7 @@ cardboard_t::cardboard_t(
 			auto block_index = bit_offset >> 6;
 			auto block_bit_offset = bit_offset % 64;
 
-			std::uint64_t piece_code = static_cast<std::uint64_t>(piece.kind)
+			std::uint64_t piece_code = (static_cast<std::uint64_t>(piece.kind) + 1)
 				| (piece.color == player_color::white ? 0 : 16);
 
 			this->piece_blocks[block_index] |= (piece_code << bit_offset);
@@ -47,7 +47,7 @@ std::size_t std::hash<cardboard_t>::operator()(const cardboard_t& cardboard) con
 
 	std::size_t re = 0;
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 4; i++) {
 		re ^= hash64(cardboard.piece_blocks[i]);
 	}
 	
