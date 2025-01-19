@@ -82,7 +82,7 @@ std::string engine::to_san(move_t move, board_t& board){
     std::vector<move_t> candidates = board.pseudolegal_moves();
 
     for (auto& candidate : candidates) {
-        if (candidate.destination == move.destination && candidate != move &&
+        if (board.is_legal(candidate) && candidate.destination == move.destination && candidate != move &&
             board.piece(candidate.source)->kind == piece->kind) {
             if (candidate.source.column() != move.source.column()) {
                 // the file is not the same

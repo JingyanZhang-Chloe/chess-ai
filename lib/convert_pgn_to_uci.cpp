@@ -28,7 +28,7 @@ std::string engine::san_to_uci(std::string& san, board_t& board){
             continue;
         }
 
-        std::cout << "***For move: " << move << " we get the san value by to_san as: " << to_san(move, board) << std::endl;
+        //std::cout << "***For move: " << move << " we get the san value by to_san as: " << to_san(move, board) << std::endl;
         
         if(to_san(move, board) == san){
             if(move.promotion_code.has_value()){
@@ -74,7 +74,7 @@ std::string engine::san_to_uci(std::string& san, board_t& board){
     throw "[Error in san_to_uci: ] invalid san value";
 };
 
-void engine::convert(const std::string& inputPath, const std::string& outputDir){
+void engine::convert(const std::string& inputPath, const std::string& outputDir, int filenumber){
     //since we will output each game as a file, so we take the second arg as Dir(instead of Path)
     if(!std::filesystem::exists(outputDir)){
         std::filesystem::create_directory(outputDir);
@@ -94,13 +94,12 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
         // this is the end of one game block
         if(line.empty() && game.empty() != true){
             gamenumber ++;
-            std::cout << "[GAME " << gamenumber << "]" << std::endl;
-            board_t board;
+            //std::cout << "[GAME " << gamenumber << "]" << std::endl;
 
             std::stringstream gameStream(game); // to make the game string into token separated by space
 
             //create a file for this game
-            std::ofstream outputFile(outputDir + "/game" + std::to_string(gamenumber) + ".uci");
+            std::ofstream outputFile(outputDir + "/game" + "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci");
             if (!outputFile.is_open()) {
                 throw std::runtime_error("Failed to create output file for game " + std::to_string(gamenumber));
             };
@@ -151,16 +150,36 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
             */
             
             
-            
-
             //now in the vector sanMoves, we have all the moves but in the form of SAN
             //now turn the SAN form into UCI form
+
+            bool if_continue = true;
+            board_t test_board;
+            std::vector<std::string> my_uci;
+
             for(std::string san : sanMoves){
-                std::string uci = san_to_uci(san, board);
-                outputFile << uci << std::endl;
-                board.make_move(move_t{uci});
-                std::cout << "MOVEEEEE the board : " << uci << " from the san value : " << san << std::endl;
-            }
+
+                try{
+                    std::string uci = san_to_uci(san, test_board);
+                    test_board.make_move(uci);
+                    my_uci.push_back(uci);
+
+                } catch (const char* str) {
+                    std::cout << str << std::endl;
+                    std::cout << "skip the game " << gamenumber << std::endl;
+                    if_continue = false;
+                    break;
+                }
+            };
+
+
+            if(if_continue){
+                for(std::string uci : my_uci){
+                    outputFile << uci << std::endl;
+                    //std::cout << "MOVEEEEE the board : " << uci << " from the san value : " << san << std::endl;
+                };
+            };
+
             outputFile.close();
             game.clear();
         }
@@ -179,7 +198,7 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
 
         std::stringstream gameStream(game);
 
-        std::ofstream outputFile(outputDir + "/game" + std::to_string(gamenumber) + ".uci");
+        std::ofstream outputFile(outputDir + "/game" + "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci");
         if (!outputFile.is_open()) {
             throw std::runtime_error("Failed to create output file for game " + std::to_string(gamenumber));
         }
@@ -238,11 +257,15 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir)
 }
 
 void engine::convert_dir(const std::string& inputDir, const std::string& outputDir){
+
+    int filenumber = 0;
     try {
         // Iterate through each entry in the directory
         for (const auto& entry : std::filesystem::directory_iterator(inputDir)) {
-            if (std::filesystem::is_regular_file(entry)) { // Check if the entry is a regular file
-                convert(entry.path(), outputDir);
+            if (std::filesystem::is_regular_file(entry) && entry.path().string().contains(".pgn")) { // Check if the entry is a regular file
+                filenumber += 1;
+                std::cout << "handling the file " << filenumber << entry.path().string() << std::endl;
+                convert(entry.path().string(), outputDir, filenumber);
             }
         }
     } catch (const std::filesystem::filesystem_error& e) {
