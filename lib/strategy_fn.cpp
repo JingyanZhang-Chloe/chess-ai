@@ -11,7 +11,6 @@ move_t engine::strategies::minmax(board_t& board, int depth) {
 	auto pseudolegal_moves = board.pseudolegal_moves();
 
 	for (auto move : pseudolegal_moves) {
-		std::cout << "[" << move << "]";
 		auto move_info = board.make_move(move);
 		auto hash = board.to_bitset();
 
@@ -27,10 +26,7 @@ move_t engine::strategies::minmax(board_t& board, int depth) {
 		board.unmake_move(move_info);
 	}
 
-	std::cout << "The best score is: " << best_score << std::endl;
-	std::cout << "The scores are: ";
 	for (auto move : pseudolegal_moves) {
-		std::cout << "[" << move << "]";
 		auto move_info = board.make_move(move);
 		auto hash = board.to_bitset();
 
