@@ -6,8 +6,8 @@
 #include <piece_t.h>
 #include <move_t.h>
 #include <chess_coordinate_t.h>
-#include <bitset>
 #include <move_info_t.h>
+#include <cardboard_t.h>
 
 namespace engine {
 
@@ -60,7 +60,7 @@ public:
 
 	float score();
 
-	using hash_t = std::bitset<265>;
+	using hash_t = cardboard_t;
 	hash_t to_bitset();
 
 private:
