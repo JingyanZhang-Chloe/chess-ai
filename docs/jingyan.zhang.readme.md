@@ -21,7 +21,9 @@ today i modify and debug of make move and unmake move. handling the case of cast
 
 today I add into_string for moves, and i create a lot of functions for converting the pgn format of move into uci for providing our engine a better referee to the opening moves, now we gonna add some master games into the engine referee for it to search the beginning move efficiently.
 
+today i finish all the convert process from pgn to uci, and i get more than 100000 games for our openning training.
 
+today i create a new structure called tree_t, this structure will have inner struct called node_t, and each node will contain a map between a node and a move, for each level node, it will contain every move in the map (i.e. the first level of node_t will contain a map that maps each first move to the second nodes). by this way we can efficiently get the master's open moves.
 
 
 

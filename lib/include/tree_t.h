@@ -13,6 +13,8 @@ struct tree_t{
         int white_losses;
     };
 
+    tree_t(const std::string& inputfile);
+
     std::shared_ptr<node_t> root;
 };
 
