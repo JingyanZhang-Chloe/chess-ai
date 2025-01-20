@@ -679,40 +679,17 @@ std::ostream& operator << (std::ostream& os, const board_t& board) {
 };
 
 // EMERGENCY: Consider en passant
-std::bitset<265> board_t::to_bitset() {
+board_t::hash_t board_t::to_bitset() {
 	if (!this->current_hash.has_value()) {
-		this->current_hash = hash_t{};
-		std::size_t bit = 0;
-
-		for (int row = 0; row < 8; row++)
-		for (int col = 0; col < 8; col++) {
-			chess_coordinate_t coord { row, col };
-			const auto& mb_piece = this->piece(coord);
-
-			if (mb_piece.has_value()) {
-				piece_t current_piece = mb_piece.value();
-
-				int kind_hash = static_cast<int>(current_piece.kind);
-				
-				for (int c = 0; c < 3; c++) 
-					this->current_hash.value().set(bit, (kind_hash >> c) & 1);
-
-				bit += 3;
-				this->current_hash.value().set(
-					bit++, current_piece.color == player_color::white
-				);
-			}
-			else {
-				bit += 4;
-			}
-		}
-
-		this->current_hash.value().set(bit++, this->white_king_or_left_rook_moved);
-		this->current_hash.value().set(bit++, this->white_king_or_right_rook_moved);
-		this->current_hash.value().set(bit++, this->black_king_or_left_rook_moved);
-		this->current_hash.value().set(bit++, this->black_king_or_right_rook_moved);
-		// EMERGENCY: Remove this when bug is fixed
-		//this->current_hash.value().set(bit++, this->_turn_color == player_color::white);
+		this->current_hash = cardboard_t{ 
+			this->pieces,
+			this->turn_color(),
+			false, // TODO: Change this to the en passant availability
+			this->white_king_or_left_rook_moved,
+			this->white_king_or_right_rook_moved,
+			this->black_king_or_left_rook_moved,
+			this->black_king_or_right_rook_moved,
+		};
 	}
 
 	return this->current_hash.value();
