@@ -93,16 +93,11 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
 
         // this is the end of one game block
         if(line.empty() && game.empty() != true){
-            gamenumber ++;
             //std::cout << "[GAME " << gamenumber << "]" << std::endl;
 
             std::stringstream gameStream(game); // to make the game string into token separated by space
 
-            //create a file for this game
-            std::ofstream outputFile(outputDir + "/game" + "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci");
-            if (!outputFile.is_open()) {
-                throw std::runtime_error("Failed to create output file for game " + std::to_string(gamenumber));
-            };
+
 
             // Process the current game
 
@@ -110,7 +105,9 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
             std::string pgnContent;
 
             while (std::getline(gameStream, line)) {
+                //std::cout << "we get the line : " << line << std::endl;
                 if (line.empty()) continue;
+
                 if (line[0] == '[') {
                     //skip!!
                     continue;
@@ -122,11 +119,20 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
                 }
             };
 
+            //std::cout << "the pgnContent is  " << pgnContent << std::endl;
+
             //clean the data
             std::string moveContent;
 
             std::regex clockRegex(R"(\{[^}]*\})"); // Matches { ... }
             std::regex resultRegex(R"((1-0|0-1|1/2-1/2))"); // Matches game results
+
+            std::string the_score;
+            std::smatch match;
+            if(std::regex_search(pgnContent, match, resultRegex)){
+                the_score = match.str(0);
+            };
+
             moveContent = std::regex_replace(pgnContent, clockRegex, ""); // Remove clock annotations
             moveContent = std::regex_replace(moveContent, resultRegex, ""); // Remove results
 
@@ -173,14 +179,30 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
             };
 
 
-            if(if_continue){
+            if(if_continue && (!(my_uci.empty()))){
+
+                gamenumber ++;
+
+                std::cout << "write the file " << "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci" << std::endl;
+
+                //create a file for this game
+                std::ofstream outputFile(outputDir + "/game" + "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci");
+                if (!outputFile.is_open()) {
+                    throw std::runtime_error("Failed to create output file for game " + std::to_string(gamenumber));
+                } else {
+                    std::cout << "create the game file " << "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci" << std::endl;
+                };
+
+
+                outputFile << the_score << std::endl;
                 for(std::string uci : my_uci){
                     outputFile << uci << std::endl;
                     //std::cout << "MOVEEEEE the board : " << uci << " from the san value : " << san << std::endl;
                 };
+
+                outputFile.close();
             };
 
-            outputFile.close();
             game.clear();
         }
         else 
@@ -190,18 +212,11 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
         };
     }
 
-    // Handle the last game block if any
-    if (!game.empty()) {
-        gamenumber++;
+    if(!game.empty()){
+        //handle the last block
+        std::stringstream gameStream(game); // to make the game string into token separated by space
 
-        board_t board;
 
-        std::stringstream gameStream(game);
-
-        std::ofstream outputFile(outputDir + "/game" + "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci");
-        if (!outputFile.is_open()) {
-            throw std::runtime_error("Failed to create output file for game " + std::to_string(gamenumber));
-        }
 
         // Process the current game
 
@@ -209,7 +224,9 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
         std::string pgnContent;
 
         while (std::getline(gameStream, line)) {
+            //std::cout << "we get the line : " << line << std::endl;
             if (line.empty()) continue;
+
             if (line[0] == '[') {
                 //skip!!
                 continue;
@@ -217,15 +234,24 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
             else 
             {
                 // Collect moves
-                pgnContent += line + " ";
-            }            
+                    pgnContent += line + " ";
+            }
         };
+
+        //std::cout << "the pgnContent is  " << pgnContent << std::endl;
 
         //clean the data
         std::string moveContent;
 
         std::regex clockRegex(R"(\{[^}]*\})"); // Matches { ... }
         std::regex resultRegex(R"((1-0|0-1|1/2-1/2))"); // Matches game results
+
+        std::string the_score;
+        std::smatch match;
+        if(std::regex_search(pgnContent, match, resultRegex)){
+            the_score = match.str(0);
+        };
+            
         moveContent = std::regex_replace(pgnContent, clockRegex, ""); // Remove clock annotations
         moveContent = std::regex_replace(moveContent, resultRegex, ""); // Remove results
 
@@ -234,23 +260,60 @@ void engine::convert(const std::string& inputPath, const std::string& outputDir,
 
         std::istringstream moveStream(moveContent);
         std::vector<std::string> sanMoves;
-        
         while (moveStream >> move) {
-            
             if(move.find('.') == std::string::npos){
                 sanMoves.push_back(move);
             };
+        };
             
-        }
-
+            
         //now in the vector sanMoves, we have all the moves but in the form of SAN
         //now turn the SAN form into UCI form
+
+        bool if_continue = true;
+        board_t test_board;
+        std::vector<std::string> my_uci;
+
         for(std::string san : sanMoves){
-            outputFile << san_to_uci(san, board) << std::endl;
-            board.make_move(move_t{san_to_uci(san, board)});
+
+            try{
+                std::string uci = san_to_uci(san, test_board);
+                test_board.make_move(uci);
+                my_uci.push_back(uci);
+
+            } catch (const char* str) {                    std::cout << str << std::endl;
+                std::cout << "skip the game " << gamenumber << std::endl;
+                if_continue = false;
+                break;
+            }
         };
 
-        outputFile.close();
+
+        if(if_continue && (!(my_uci.empty()))){
+
+            gamenumber ++;
+
+            std::cout << "write the file " << "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci" << std::endl;
+
+            //create a file for this game
+            std::ofstream outputFile(outputDir + "/game" + "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci");
+            if (!outputFile.is_open()) {
+                throw std::runtime_error("Failed to create output file for game " + std::to_string(gamenumber));
+            } else {
+                std::cout << "create the game file " << "[" + std::to_string(filenumber) + "]" + std::to_string(gamenumber) + ".uci" << std::endl;
+            };
+
+
+            outputFile << the_score << std::endl;
+            for(std::string uci : my_uci){
+                outputFile << uci << std::endl;
+                //std::cout << "MOVEEEEE the board : " << uci << " from the san value : " << san << std::endl;
+            };
+
+            outputFile.close();
+        };
+
+        game.clear();
     };
 
     std::cout << "Processed " << gamenumber << " games." << std::endl;
