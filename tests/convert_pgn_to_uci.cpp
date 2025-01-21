@@ -1,6 +1,7 @@
 #include <convert_pgn_to_uci.h>
 #include <board_t.h>
 
+/*
 int main(){
 
     try{
@@ -11,3 +12,4 @@ int main(){
     
     return 0;
 }
+*/

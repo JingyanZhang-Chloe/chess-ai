@@ -15,6 +15,8 @@ struct tree_t{
 
     tree_t(const std::string& inputfile);
 
+    void single_print();
+
     std::shared_ptr<node_t> root;
 };
 
