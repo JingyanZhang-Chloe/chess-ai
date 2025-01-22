@@ -17,9 +17,11 @@ struct tree_t{
 
     tree_t(const std::string& inputfile);
 
+    tree_t(std::shared_ptr<node_t> root);
+
     void single_print();
 
-    tree_t merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this);
+    void merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this);
 
     void print();
 

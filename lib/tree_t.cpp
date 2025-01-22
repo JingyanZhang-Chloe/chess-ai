@@ -62,6 +62,10 @@ tree_t::tree_t(const std::string& inputPath){
     };
 };
 
+tree_t::tree_t(std::shared_ptr<node_t> root){
+    this->root = root;
+}
+
 void tree_t::single_print(){
 
     int key_count = 0;
@@ -78,13 +82,13 @@ void tree_t::single_print(){
     };
 }
 
-tree_t tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this){
+void tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this){
     if(tree.root->transition_map.empty()){
-        return *this;
+        return;
     }
 
     if(this->root == nullptr){
-        return tree;
+        *this = tree;
     }
 
     if(current_node_for_this == nullptr){
@@ -102,7 +106,9 @@ tree_t tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this
             if(key == aim_key){
                 // if we find one that matches
                 current_node_for_this = aim_value;
+
                 tree.root = value;
+
                 this->merge(tree, current_node_for_this);
             }
 
@@ -110,8 +116,6 @@ tree_t tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this
             current_node_for_this->transition_map.insert(std::make_pair(key, value));
         };
     };
-
-    return *this;
 }
 
 void tree_t::print_moves(std::shared_ptr<node_t> node){
