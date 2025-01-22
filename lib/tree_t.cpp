@@ -98,6 +98,11 @@ void tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this){
         // we are working on the 0th depth
         current_node_for_this = this->root;
     }
+
+    current_node_for_this->white_wins += tree.root->white_wins;
+    current_node_for_this->draws += tree.root->draws;
+    current_node_for_this->white_losses = tree.root->white_losses;
+
     
     for(auto const& [key, value] : tree.root->transition_map){
         // here [key, value] is a pair in the current_node for tree map
@@ -109,6 +114,7 @@ void tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this){
             if(key == aim_key){
                 std::cout << "COMBINE"<< std::endl;
                 // if we find one that matches
+
                 current_node_for_this = aim_value;
 
                 tree_t new_tree{value};
