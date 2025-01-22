@@ -3,6 +3,7 @@
 
 using namespace engine;
 
+//tested
 tree_t::tree_t(const std::string& inputPath){
     std::ifstream inputFile(inputPath);
     if (!inputFile.is_open()) {
@@ -66,6 +67,7 @@ tree_t::tree_t(std::shared_ptr<node_t> root){
     this->root = root;
 }
 
+//tested
 void tree_t::single_print(){
 
     int key_count = 0;
@@ -81,6 +83,7 @@ void tree_t::single_print(){
         };
     };
 }
+
 
 void tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this){
     if(tree.root->transition_map.empty()){
@@ -104,17 +107,24 @@ void tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this){
         //check if this key is in our this
         for(auto const& [aim_key, aim_value] : current_node_for_this->transition_map){
             if(key == aim_key){
+                std::cout << "COMBINE"<< std::endl;
                 // if we find one that matches
                 current_node_for_this = aim_value;
 
-                tree.root = value;
+                tree_t new_tree{value};
 
-                this->merge(tree, current_node_for_this);
-            }
+                this->merge(new_tree, current_node_for_this);
 
-            // if we do not find the match, we just add this key in our current node for this
-            current_node_for_this->transition_map.insert(std::make_pair(key, value));
+                return;
+            };
+
         };
+
+        std::cout <<"ADD" << std::endl;
+
+        // if we do not find the match, we just add this key in our current node for this
+        current_node_for_this->transition_map.insert(std::make_pair(key, value));
+
     };
 }
 
