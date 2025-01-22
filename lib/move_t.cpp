@@ -73,3 +73,15 @@ std::ostream& operator << (std::ostream& os, const move_t& move){
 }
 
 bool move_t::operator == (const move_t& move) const = default;
+
+std::size_t std::hash<move_t>::operator()(const move_t& move) const {
+    std::hash<chess_coordinate_t> coordinate_hash;
+    std::hash<piece_kind> piece_kind_hash;
+
+    if(move.promotion_code.has_value()){
+        std::hash<piece_kind> piece_kind_hash;
+        return (coordinate_hash(move.source) ^ coordinate_hash(move.destination)) ^ piece_kind_hash(move.promotion_code.value());
+    }
+
+    return (coordinate_hash(move.source) ^ coordinate_hash(move.destination));
+}

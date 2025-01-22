@@ -24,4 +24,10 @@ struct move_t {
 
 std::ostream& operator << (std::ostream& os, const engine::move_t& move);
 
-
+template<>
+class std::hash<engine::move_t> {
+public:
+	hash() = default;
+	
+	std::size_t operator()(const engine::move_t&) const;
+};

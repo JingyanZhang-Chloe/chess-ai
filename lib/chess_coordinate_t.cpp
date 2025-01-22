@@ -83,3 +83,9 @@ std::string chess_coordinate_t::into_string(){
 
 	return re;
 }
+
+std::size_t std::hash<chess_coordinate_t>::operator()(const chess_coordinate_t& coord) const {
+	std::hash<std::uint8_t> int8_hasher;
+
+	return int8_hasher(coord.coordinate);
+}

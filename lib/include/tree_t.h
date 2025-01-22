@@ -11,11 +11,21 @@ struct tree_t{
         int white_wins;
         int draws;
         int white_losses;
+
+        void print();
     };
 
     tree_t(const std::string& inputfile);
 
     void single_print();
+
+    tree_t merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this);
+
+    void print();
+
+    void print_children(std::shared_ptr<node_t> node);
+
+    void print_moves(std::shared_ptr<node_t> node);
 
     std::shared_ptr<node_t> root;
 };
