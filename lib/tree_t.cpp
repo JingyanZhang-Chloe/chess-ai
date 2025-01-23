@@ -170,3 +170,25 @@ std::string tree_t::to_cpp() {
 
 	return re.str();
 }
+
+void tree_t::print(std::shared_ptr<node_t> begin, int depth){
+
+    if(depth == 0){
+        return;
+    }
+
+    std::cout << " ##### Moves in depth " << depth << " #####" << std::endl;
+    std::cout << "[ ";
+    for(auto const& [key, value] : begin->transition_map){
+        std::cout << key << " ";
+    };
+    std::cout << " ]" << std::endl;
+
+    for(auto const& [key, value] : begin->transition_map){
+        
+        std::cout << "the move " << key << " has children ";
+        print(value, depth - 1);
+        std::cout << " " << std::endl;
+        
+    };
+}
