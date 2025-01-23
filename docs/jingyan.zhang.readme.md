@@ -1,50 +1,41 @@
-//draft
+Meeting 1:
+The team met during the TD session to collaborate on the initial setup of the project. Together, we created the CMakeLists file to manage the build process and set up a GitLab repository for version control. Each member created their own branches, and we went through the process of learning how to commit changes and merge them into the main branch. This session established the groundwork for our collaboration and ensured that everyone was aligned on version control practices.
 
-Today we meet in TD and create together the cmakelist and our gitLab. We add our branches and learn how to commit and merge them into main.
+Meeting 2:
+We met during the lecture to discuss and divide the project tasks. The focus was on splitting responsibilities for implementing the board and moves logic. The team agreed on the scope of each task, and I was assigned the responsibility of implementing the moves for the queen, bishop, and rook. This meeting ensured that all team members had clear objectives and that the workload was evenly distributed.
 
-Today we meet together in the lecture and we divide the work for borad and moves. I will work on the moves part for queen, bishop, and rook.
+Meeting 3:
+The team continued making progress, and I started working on the gen_move_fn.h and gen_move_fn.cpp files. These files were critical for implementing the move generation functionality. I focused on writing logic to generate legal moves for the rook, queen, and bishop, ensuring the rules for their movement patterns were correctly implemented. This session was a key step in building the foundation for piece movement.
 
-Today I work on the gen_move_fn.h and gen_move_fn.cpp and we implement the function for generating the 'legal' moves for rook, queen and bishop.
+Meeting 4:
+In this meeting, I implemented a comparison function for moves and chess coordinates. The purpose of this functionality was to enable the system to validate moves by comparing them against the expected positions on the board. By introducing this feature, we ensured that the generated moves would be accurate and aligned with the rules of chess, adding an extra layer of reliability to the move generation process.
 
-Today I implement the comparasion of move and chess_coordinate
+Meeting 5:
+During the Christmas break, I focused on extending the gen_legal_move_fn to handle pawn movements. This involved addressing unique cases for pawns, such as their ability to perform a double move from their starting position, promoting to another piece upon reaching the back rank, and executing en passant captures. These additions made the pawn move generation more comprehensive, covering all edge cases and special rules associated with the piece.
 
-Chrismas break:
-today i keep implement the gen_legal_move_fn for pawn, consider the case of double move, promotion and en passant
+Meeting 6:
+During this meeting, I completed the implementation of move generation for all chess pieces. I also tested the functions to verify that the movements generated for each piece worked as expected. This step was crucial for confirming the correctness and reliability of the logic written so far, ensuring that the core functionality of the chess engine was on track.
 
-today i finish to implement all the moves for pieces and test on if all the function for generating movements work as expected
+Meeting 7:
+In this session, I implemented a function to determine the winning player based on the current state of the board. Additionally, I developed the is_check function to detect if the current player is in check. These functions are essential for adding game state evaluation and will play a significant role in implementing advanced features such as AI decision-making using the minimax algorithm.
 
-today i implement the function wining player in board_t to help our further check for minmax search. and i implememnt the function to check if the current player is in check. (is_check function)
+Meeting 8:
+The focus of this meeting was on implementing the unmake_move function for the board. To achieve this, I designed a new struct called move_info to store the details of each move. This struct allows the board to revert to its state before a move was made. This implementation is critical for undoing moves during searches and evaluations, which is especially important for techniques like backtracking in AI algorithms.
 
-today i implement the function for unamke the move for the board, to do so, i create a new struct called move_info to store the information for move, and to make the board go back to the state before the move.
+Meeting 9:
+Today, I worked on debugging and refining the make_move and unmake_move functions. Special cases like castling and en passant were addressed to ensure that these complex scenarios were handled correctly. This meeting focused on improving the reliability of the board's state transitions, which is fundamental to the chess engine's overall functionality.
 
-today i modify and debug of make move and unmake move. handling the case of castiling and en passant.
+Meeting 10:
+I implemented the to_string function for moves, allowing moves to be easily converted into a readable format. Additionally, I developed a series of functions to convert moves from the PGN (Portable Game Notation) format to the UCI (Universal Chess Interface) format. This was done to enhance the engine’s ability to process and refer to opening moves. The focus was now on gathering master games to build a strong opening repertoire for the chess engine.
 
-today I add into_string for moves, and i create a lot of functions for converting the pgn format of move into uci for providing our engine a better referee to the opening moves, now we gonna add some master games into the engine referee for it to search the beginning move efficiently.
+Meeting 11:
+During this session, I completed the entire conversion process from PGN to UCI format and successfully gathered a dataset of over 100,000 games for training the engine's opening phase. This extensive collection of games will allow the engine to make more informed decisions during the initial stages of a chess match.
 
-today i finish all the convert process from pgn to uci, and i get more than 100000 games for our openning training.
+Meeting 12:
+Today, I designed and implemented a new structure called tree_t, which includes an inner struct called node_t. Each node contains a map that links a move to another node, allowing the tree to represent the progression of moves. For the first level of nodes, each node contains a map of all possible opening moves leading to subsequent levels. This structure provides an efficient way to store and retrieve master opening moves for the engine.
 
-today i create a new structure called tree_t, this structure will have inner struct called node_t, and each node will contain a map between a node and a move, for each level node, it will contain every move in the map (i.e. the first level of node_t will contain a map that maps each first move to the second nodes). by this way we can efficiently get the master's open moves.
+Meeting 13:
+I began implementing methods to turn the gathered opening games into a tree structure for more efficient searching. Additionally, I developed a merge function to combine multiple trees. Each node in the tree now also records win, loss, and draw counts, enabling the engine to evaluate opening lines based on their historical success rates. This enhancement ensures that the opening repertoire is not only efficient but also strategically sound.
 
-Today i begin to implement the method to turn our openings to tree for better search, and i write the merge function to merge two trees tgt. Also we record the winnning, lossing and draw counts for better using the opening resourses.
-
-Today I fix some bugs in merging trees and implement print fuunction for complex tree.
-
-
-
-
-
-
-Meet 1: We got together in the TD session to kick things off. We set up the project environment and put together the CMakeLists.txt file to manage the build system. After that, we created a GitLab repository, set up our branches, and got familiar with committing and merging changes into the main branch. It was a productive start that laid the groundwork for working as a team.
-
-Meet 2: During the lecture, we hashed out who’d work on what. We decided to split up the work on the board logic and movement functions. I picked the movement logic for the queen, bishop, and rook. It felt good to have clear tasks for everyone, so we knew what to focus on.
-
-Meet 3: I started diving into the gen_move_fn.h and gen_move_fn.cpp files. My job was to figure out how to generate "legal" moves for the rook, queen, and bishop. It took some time to map out how these pieces move and deal with obstacles in their paths. I made sure to stick to the official chess rules for each one. It felt like laying down the building blocks for the game’s core mechanics.
-
-Meet 4: Next up, I added some comparison functions for moves and chess coordinates. These were key for making sure the moves we’re generating actually make sense. It was a smaller task, but it really helped tie things together and made the code more solid.
-
-Christmas Break Work
-Meet 5: Over the break, I worked on the gen_legal_move_fn for the pawn. Pawns are tricky because they’ve got so many special cases: double moves on their first go, promotion when they reach the other side, and en passant captures. It took some effort to get all of that working, but it was satisfying to see it come together.
-
-Meet 6: I wrapped up the movement logic for all the pieces. I tested everything to make sure it worked right and handled different scenarios. It was a big milestone to see all the pieces moving as they should. Testing took some time, but it was worth it to get everything running smoothly.
-
-
+Meeting 14:
+During this meeting, I focused on fixing bugs in the tree merging functionality. I also implemented a print function for the tree structure to visualize and debug the complex relationships within it. These improvements were essential for ensuring that the opening tree worked as intended and could be effectively utilized by the chess engine.
