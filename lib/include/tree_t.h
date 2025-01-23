@@ -1,7 +1,9 @@
 #pragma once
 #include <convert_pgn_to_uci.h>
+#include <board_t.h>
 #include <move_t.h>
 #include <memory>
+#include <functional>
 
 namespace engine {
 
@@ -13,6 +15,8 @@ struct tree_t{
         int white_losses;
 
         void print();
+
+		int score();
     };
 
     tree_t(const std::string& inputfile);
@@ -30,6 +34,11 @@ struct tree_t{
     void print_moves(std::shared_ptr<node_t> node);
 
     std::shared_ptr<node_t> root;
+
+	std::string to_cpp();
+
+	void traverse(std::function<void(node_t&, board_t&)>);
+	void traverse(std::function<void(node_t&, board_t&)>, board_t&);
 };
 
 

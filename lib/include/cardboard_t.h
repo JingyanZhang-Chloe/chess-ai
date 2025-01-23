@@ -1,6 +1,7 @@
 #pragma once
 #include <piece_t.h>
 #include <player_color.h>
+#include <optional>
 
 namespace engine {
 
