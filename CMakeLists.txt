@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_BUILD_TYPE Release)
-string(APPEND CMAKE_CXX_FLAGS "-O3")
+string(APPEND CMAKE_CXX_FLAGS " -O3")
 
 project(blunder-ai)
 
