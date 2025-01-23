@@ -1,5 +1,6 @@
 #include <tree_t.h>
 #include <fstream>
+#include <sstream>
 
 using namespace engine;
 
@@ -45,6 +46,10 @@ tree_t::tree_t(const std::string& inputPath)
 
 tree_t::tree_t(std::shared_ptr<node_t> root){
     this->root = root;
+}
+
+int tree_t::node_t::score() {
+	return this->white_wins - this->white_losses;
 }
 
 //tested
@@ -108,6 +113,62 @@ void tree_t::node_t::print(){
         std::cout << key << " ";
     }
     std::cout << " ]" << std::endl;
+}
+
+void tree_t::traverse(std::function<void(tree_t::node_t&, board_t&)> fn, board_t& board) {
+	fn(*(this->root), board);
+
+	for (const auto& [move, node] : this->root->transition_map) {
+		tree_t subtree { node };
+
+		auto move_info = board.make_move(move);
+		subtree.traverse(fn, board);
+		board.unmake_move(move_info);
+	}
+}
+
+void tree_t::traverse(std::function<void(tree_t::node_t&, board_t&)> fn) {
+	board_t board;
+	
+	this->traverse(fn, board);
+}
+
+std::string tree_t::to_cpp() {
+	std::unordered_map<std::string, std::optional<move_t>> fen_map;
+
+	this->traverse([&](node_t& node, board_t& board) {
+		std::string fen = board.fen();
+
+		int best_score = std::numeric_limits<int>::max()
+		* (board.turn_color() == player_color::white ? -1 : 1);
+		std::optional<move_t> best_move;
+
+		for (const auto& [move, next_node]: node.transition_map) {
+			int score = next_node->score();
+
+			if (board.turn_color() == player_color::white && score > best_score) {
+				best_score = score;
+				best_move= move;
+			}
+			else if (board.turn_color() == player_color::black && score < best_score) {
+				best_score = score;
+				best_move = move;
+			}
+		}
+		
+		if (best_move.has_value())
+			fen_map[fen] = best_move.value();
+	});
+
+	std::stringstream re; re << "std::unordered_map<std::string, move_t> fen_map {{";
+
+	for (const auto& [fen, move] : fen_map) {
+		re << "{ std::string{ \"" << fen << "\" }, move_t{ \"" << move.value() << "\" }}, ";
+	}
+
+	re << "}};";
+
+	return re.str();
 }
 
 void tree_t::print(std::shared_ptr<node_t> begin, int depth){
