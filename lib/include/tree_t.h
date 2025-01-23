@@ -23,7 +23,7 @@ struct tree_t{
 
     void merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this);
 
-    void print();
+    void print(std::shared_ptr<node_t> begin, int depth);
 
     void print_children(std::shared_ptr<node_t> node);
 
