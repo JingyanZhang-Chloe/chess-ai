@@ -1,7 +1,7 @@
 #pragma once
-#include <iostream>
 #include <convert_pgn_to_uci.h>
 #include <move_t.h>
+#include <memory>
 
 namespace engine {
 

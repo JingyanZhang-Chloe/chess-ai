@@ -1,66 +1,46 @@
 #include <tree_t.h>
-
+#include <fstream>
 
 using namespace engine;
 
 //tested
-tree_t::tree_t(const std::string& inputPath){
+tree_t::tree_t(const std::string& inputPath)
+: root{new node_t}
+{
     std::ifstream inputFile(inputPath);
     if (!inputFile.is_open()) {
         throw "[Error in tree_t constructor: ] Failed to open input file.";
     };
 
-    std::string line;
-    std::string white_win = "1-0";
-    std::string draw = "1/2-1/2";
-    std::string white_loss = "0-1";
+	int white_wins = 0;
+	int draws = 0;
+	int white_losses = 0;
 
-    int white_wins = 0;
-    int draws = 0;
-    int white_losses = 0;
-    std::shared_ptr<node_t> last_node {new node_t};
+    std::string line;
+    std::getline(inputFile, line);
+
+	if (line == "1-0")
+		white_wins = 1;
+	else if (line == "1/2-1/2")
+		draws = 1;
+	else if (line == "0-1")
+		white_losses = 1;
+
+	root->white_wins = white_wins;
+	root->draws = draws;
+	root->white_losses = white_losses;
+		
+    std::shared_ptr<node_t> last_node{ this->root };
 
     while(std::getline(inputFile, line)){
-        if(line.contains("-")){
-            //this is a score
-            if(line == white_win){
-                white_wins += 1;
-            }
-            else if(line == draw){
-                draws += 1;
-            }
-            else if(line == white_loss){
-                white_losses += 1;
-            }
-            else{
-                throw "[Error in tree_t constructor: ] invalid score line";
-            };
+		std::shared_ptr<node_t> new_node{ new node_t };
+		new_node->white_wins = white_wins;
+		new_node->draws = draws;
+		new_node->white_losses = white_losses;
 
-        }
-        else
-        {
-            if(this->root == nullptr){
-                this->root = std::shared_ptr<node_t>{new node_t};
-                std::shared_ptr<node_t> new_node {new node_t};
-                this->root->transition_map[move_t{line}] = new_node;
-                this->root->white_wins = white_wins;
-                this->root->draws = draws;
-                this->root->white_losses = white_losses;
-                
-                last_node = new_node;
-            }
-            else
-            {
-                // the root already exists
-                std::shared_ptr<node_t> new_node {new node_t};
-                last_node->transition_map[move_t{line}] = new_node;
-                last_node->white_wins = white_wins;
-                last_node->draws = draws;
-                last_node->white_losses = white_losses;
-                last_node = new_node;
-            };
-        };
-    };
+		last_node->transition_map[line] = new_node;
+		last_node = new_node;
+	}
 };
 
 tree_t::tree_t(std::shared_ptr<node_t> root){
@@ -85,52 +65,28 @@ void tree_t::single_print(){
 }
 
 
-void tree_t::merge(tree_t& tree, std::shared_ptr<node_t> current_node_for_this){
-    if(tree.root->transition_map.empty()){
-        return;
-    }
+void tree_t::merge(tree_t& tree, std::shared_ptr<node_t> head){
+	head->white_wins = 0;
+	head->draws = 0;
+	head->white_losses = 0;
 
-    if(this->root == nullptr){
-        *this = tree;
-    }
-
-    if(current_node_for_this == nullptr){
-        // we are working on the 0th depth
-        current_node_for_this = this->root;
-    }
-
-    current_node_for_this->white_wins += tree.root->white_wins;
-    current_node_for_this->draws += tree.root->draws;
-    current_node_for_this->white_losses = tree.root->white_losses;
-
-    
-    for(auto const& [key, value] : tree.root->transition_map){
-        // here [key, value] is a pair in the current_node for tree map
-        // here, key is the set of all the moves for the root of the tree we want to merge
-        // the value is the set of all the nodes the moves points to
+    for(auto const& [move, node] : tree.root->transition_map){
+        // here [move, node] is a pair in the current_node for tree map
+        // here, move is the set of all the moves for the root of the tree we want to merge
+        // the node is the set of all the nodes the moves points to
         
-        //check if this key is in our this
-        for(auto const& [aim_key, aim_value] : current_node_for_this->transition_map){
-            if(key == aim_key){
-                std::cout << "COMBINE"<< std::endl;
-                // if we find one that matches
+        //check if this move is in our this
+		if (head->transition_map.contains(move)) {
+			tree_t other_subtree { node };
+			this->merge(other_subtree, head->transition_map[move]);
+		}
+		else {
+			head->transition_map[move] = node;
+		}
 
-                current_node_for_this = aim_value;
-
-                tree_t new_tree{value};
-
-                this->merge(new_tree, current_node_for_this);
-
-                return;
-            };
-
-        };
-
-        std::cout <<"ADD" << std::endl;
-
-        // if we do not find the match, we just add this key in our current node for this
-        current_node_for_this->transition_map.insert(std::make_pair(key, value));
-
+		head->white_wins += head->transition_map[move]->white_wins;
+		head->draws += head->transition_map[move]->draws;
+		head->white_losses += head->transition_map[move]->white_losses;
     };
 }
 
