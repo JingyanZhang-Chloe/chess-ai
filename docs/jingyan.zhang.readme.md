@@ -27,6 +27,11 @@ today i create a new structure called tree_t, this structure will have inner str
 
 Today i begin to implement the method to turn our openings to tree for better search, and i write the merge function to merge two trees tgt. Also we record the winnning, lossing and draw counts for better using the opening resourses.
 
+Today I fix some bugs in merging trees and implement print fuunction for complex tree.
+
+
+
+
 
 
 Meet 1: We got together in the TD session to kick things off. We set up the project environment and put together the CMakeLists.txt file to manage the build system. After that, we created a GitLab repository, set up our branches, and got familiar with committing and merging changes into the main branch. It was a productive start that laid the groundwork for working as a team.
