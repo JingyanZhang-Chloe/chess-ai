@@ -28,13 +28,7 @@ Matrix::Matrix(const Matrix& other)
 {
     // Allocate new memory block
     m_data = new double[m_rows * m_cols];
-    // Copy data from 'other'
-    // Option A: loop manually
-    // for(size_t i=0; i<m_rows*m_cols; ++i){
-    //     m_data[i] = other.m_data[i];
-    // }
 
-    // Option B: use std::memcpy
     std::memcpy(m_data, other.m_data, sizeof(double) * m_rows * m_cols);
 }
 

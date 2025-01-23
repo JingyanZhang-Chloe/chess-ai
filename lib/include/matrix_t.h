@@ -1,21 +1,21 @@
 #ifndef MATRIX_T_H
 #define MATRIX_T_H
 
-#include <cstddef>   // For size_t
-#include <stdexcept> // For exceptions
+#include <cstddef>   
+#include <stdexcept> 
 
 class Matrix
 {
 private:
-    size_t m_rows;     // Number of rows
-    size_t m_cols;     // Number of columns
-    double* m_data;    // Pointer to data in row-major order
+    size_t m_rows;     
+    size_t m_cols;     
+    double* m_data;    
 
 public:
     // Constructors and Destructor
-    Matrix(size_t rows, size_t cols);       // Creates a rows x cols matrix, initialized to 0
-    Matrix(const Matrix& other);           // Copy constructor
-    ~Matrix();                             // Destructor
+    Matrix(size_t rows, size_t cols);       
+    Matrix(const Matrix& other);           
+    ~Matrix();                             
 
     // Assignment Operator
     Matrix& operator=(const Matrix& other);

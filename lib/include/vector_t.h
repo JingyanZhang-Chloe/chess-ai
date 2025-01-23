@@ -1,20 +1,20 @@
 #ifndef VECTOR_T_H
 #define VECTOR_T_H
 
-#include <cstddef>   // For size_t
-#include <stdexcept> // For std::runtime_error
+#include <cstddef>   
+#include <stdexcept> 
 
 class Vector
 {
 private:
-    size_t m_size;   // Dimension of the vector
-    double* m_data;  // Pointer to the elements
+    size_t m_size;   
+    double* m_data;  
 
 public:
     // Constructors and Destructor
-    explicit Vector(size_t size);              // Create vector of given size
-    Vector(const Vector& other);               // Copy constructor
-    ~Vector();                                 // Destructor
+    explicit Vector(size_t size);              
+    Vector(const Vector& other);               
+    ~Vector();                                 
 
     // Assignment Operator
     Vector& operator=(const Vector& other);

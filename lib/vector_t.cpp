@@ -1,7 +1,7 @@
 #include "vector_t.h"
 #include <iostream>
 #include <stdexcept>
-#include <cmath> // Potentially for advanced operations
+#include <cmath> 
 
 // Constructor: allocate memory for 'size' elements
 Vector::Vector(size_t size)
@@ -40,15 +40,12 @@ Vector::~Vector()
 Vector& Vector::operator=(const Vector& other)
 {
     if (this == &other)
-        return *this; // Avoid self-assignment
+        return *this; 
 
-    // 1) Deallocate current memory
     delete[] m_data;
 
-    // 2) Copy size
     m_size = other.m_size;
 
-    // 3) Allocate new memory and copy
     m_data = new double[m_size];
     for (size_t i = 0; i < m_size; ++i)
     {
