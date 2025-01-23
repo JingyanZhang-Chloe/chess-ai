@@ -17,12 +17,10 @@ cardboard_t::cardboard_t(
 		| white_king_or_right_rook_moved << 2
 		| black_king_or_left_rook_moved << 3
 		| black_king_or_right_rook_moved << 4
-		// TODO: Remove when referee bug is fixed
-		// | turn_color == player_color::white ? 0 : 32
-	)
+		| (turn_color == player_color::white ? 0 : 32)
+	) 
 } 
 {
-
 	for (int row = 0; row < 8; row++) for (int col = 0; col < 8; col++) {
 		auto index = 8 * row + col;
 
