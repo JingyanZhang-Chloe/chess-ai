@@ -6,3 +6,4 @@ build/*
 .lsproot
 .cache
 compile_commands.json
+output_games
