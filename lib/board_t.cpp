@@ -18,7 +18,8 @@ board_t::board_t()
 	black_king_or_right_rook_moved { false },
 	_king_coordinates {{chess_coordinate_t{ 0, 4 }, chess_coordinate_t{ 7, 4 }}},
 	__piece_count{{8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1}},
-	turns_since_capture_or_pawn_move{0}
+	turns_since_capture_or_pawn_move{0},
+	positional_score{0}
 {
 	// Add pawns
 	for (int column = 0; column < 8; column++) {
@@ -64,7 +65,9 @@ board_t::board_t(std::string fen_string):
 	white_king_or_right_rook_moved{ true },
 	black_king_or_left_rook_moved{ true },
 	black_king_or_right_rook_moved{ true },
-	__piece_count{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}} {
+	__piece_count{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+	positional_score{0}
+{
 	std::array<std::string, 6> fen_fields;
 	
 	for (int i = 0; i < 5; i++) {
@@ -153,6 +156,7 @@ bool board_t::operator==(const board_t& other) const {
 	&& this->_king_coordinates == other._king_coordinates
 	&& this->__piece_count == other.__piece_count
 	&& this->position_count == other.position_count
+	&& this->positional_score == other.positional_score
 	&& this->turns_since_capture_or_pawn_move == other.turns_since_capture_or_pawn_move;
 }
 
@@ -219,6 +223,11 @@ move_info_t board_t::make_move(move_t move) {
 			player_color_fn::opposite(this->_turn_color), 
 			this->piece(move.destination).value().kind
 		)--;
+		this->positional_score -= piece_kind_fn::get_position_score(
+			this->piece(move.destination).value().kind,
+			player_color_fn::opposite(this->_turn_color),
+			move.destination
+		);
 
 		this->turns_since_capture_or_pawn_move = 0;
 
@@ -226,8 +235,26 @@ move_info_t board_t::make_move(move_t move) {
 
 		if (captured_piece.kind == piece_kind::king)
 			this->_king_coordinates[static_cast<int>(captured_piece.color)] = std::nullopt;
+
+		if (captured_piece.kind == piece_kind::rook) {
+			if (captured_piece.color == player_color::white) {
+				if (move.destination.row() == 0 && move.destination.column() == 0)
+					this->white_king_or_left_rook_moved = true;
+
+				else if (move.destination.row() == 0 && move.destination.column() == 7)
+					this->white_king_or_right_rook_moved = true;
+			}
+			else {
+				if (move.destination.row() == 7 && move.destination.column() == 0)
+					this->black_king_or_left_rook_moved = true;
+
+				else if (move.destination.row() == 7 && move.destination.column() == 7)
+					this->black_king_or_right_rook_moved = true;
+			}	
+		}
 	}
 
+	// Handle en passant
 	if(this->piece(move.source).value().kind == piece_kind::pawn){
 		if(abs(move.source.row() - move.destination.row()) == abs(move.source.column() - move.destination.column())){
 			if(!(this->piece(move.destination).has_value())){
@@ -244,9 +271,25 @@ move_info_t board_t::make_move(move_t move) {
 				//if it is indeed a pawn, we peacefully eat it
 				this->piece({move.source.row(), move.destination.column()}) = std::nullopt;
 				this->_piece_count(player_color_fn::opposite(this->turn_color()), piece_kind::pawn)--;
+				this->positional_score -= piece_kind_fn::get_position_score(
+					piece_kind::pawn,
+					player_color_fn::opposite(this->turn_color()),
+					{ move.source.row(), move.destination.column() }
+				);
 			}
 		}
 	}
+
+	this->positional_score -= piece_kind_fn::get_position_score(
+		this->piece(move.source).value().kind,
+		this->turn_color(),
+		move.source
+	);
+	this->positional_score += piece_kind_fn::get_position_score(
+		this->piece(move.source).value().kind,
+		this->turn_color(),
+		move.destination
+	);
 
 	this->piece(move.destination) = this->piece(move.source);
 	this->piece(move.source) = std::nullopt;
@@ -255,6 +298,17 @@ move_info_t board_t::make_move(move_t move) {
 	if (move.promotion_code.has_value()) {
 		this->_piece_count(this->_turn_color, move.promotion_code.value())++;
 		this->_piece_count(this->_turn_color, piece_kind::pawn)--;
+		
+		this->positional_score += piece_kind_fn::get_position_score(
+			move.promotion_code.value(),
+			this->_turn_color,
+			move.destination
+		);
+		this->positional_score -= piece_kind_fn::get_position_score(
+			piece_kind::pawn,
+			this->_turn_color,
+			move.destination
+		);
 
 		this->piece(move.destination) = piece_t{
 			move.promotion_code.value(),
@@ -279,7 +333,6 @@ move_info_t board_t::make_move(move_t move) {
 		this->position_count[current_hash]++;
 	else 
 		this->position_count.insert({ current_hash, 1 });
-	
 	
 	return info;
 }
@@ -567,20 +620,20 @@ bool board_t::is_game_over() {
 	return this->winning_player().has_value() || this->is_draw();
 }
 
-float board_t::score() {
+int board_t::score() {
 	std::optional<player_color> _winning_player = this->winning_player();
 	if (_winning_player.has_value()) {
 		if (_winning_player.value() == player_color::white)
-			return std::numeric_limits<float>::infinity();
+			return std::numeric_limits<int>::max();
 		else
-			return -std::numeric_limits<float>::infinity();
+			return -std::numeric_limits<int>::max();
 	}
 
 	if (this->is_draw()) {
-		return -1;
+		return -100;
 	}
 	
-	float score = 0;
+	int score = 0;
 
 	for (auto kind : { piece_kind::pawn, piece_kind::knight, piece_kind::bishop,
 		piece_kind::rook, piece_kind::queen })
@@ -589,7 +642,7 @@ float board_t::score() {
 			- this->piece_count(player_color::black, kind)
 		);
 
-	return score;
+	return score + this->positional_score;
 }
 
 int& board_t::_piece_count(player_color color, piece_kind kind) {
@@ -732,9 +785,28 @@ void board_t::unmake_move(move_info_t info){
 	if (info.move.promotion_code.has_value()) {
 		//we have promotion here
 		this->_piece_count(this->_turn_color, info.move.promotion_code.value())--;
+		this->positional_score -= piece_kind_fn::get_position_score(
+			info.move.promotion_code.value(), this->_turn_color, info.move.destination
+		);
+
 		this->_piece_count(this->_turn_color, piece_kind::pawn)++;
+		this->positional_score += piece_kind_fn::get_position_score(
+			piece_kind::pawn, this->_turn_color, info.move.destination
+		);
+
 		this->piece(info.move.destination)->kind = piece_kind::pawn;
 	}
+
+	this->positional_score -= piece_kind_fn::get_position_score(
+		this->piece(info.move.destination).value().kind,
+		this->_turn_color,
+		info.move.destination
+	);
+	this->positional_score += piece_kind_fn::get_position_score(
+		this->piece(info.move.destination).value().kind,
+		this->_turn_color,
+		info.move.source
+	);
 
 	this->piece(info.move.source) = this->piece(info.move.destination);
 	this->piece(info.move.destination) = info.captured_piece;
@@ -773,10 +845,16 @@ void board_t::unmake_move(move_info_t info){
 				//if theres nothing, bring a pawn
 				this->piece({info.move.source.row(), info.move.destination.column()}) = piece_t{piece_kind::pawn, player_color_fn::opposite(this->turn_color())};
 				this->_piece_count(player_color_fn::opposite(this->turn_color()), piece_kind::pawn)++;
-			}
+				this->positional_score += piece_kind_fn::get_position_score(
+					piece_kind::pawn,
+					player_color_fn::opposite(this->turn_color()),
+					{ info.move.source.row(), info.move.destination.column() }
+				);
+			}	
 		}
 	}
 
+	// Handle capture
 	if (info.captured_piece.has_value()) {
 		piece_t captured_piece = info.captured_piece.value();
 
@@ -785,6 +863,12 @@ void board_t::unmake_move(move_info_t info){
 		if (captured_piece.kind == piece_kind::king)
 			this->_king_coordinates[static_cast<int>(captured_piece.color)]
 				= info.move.destination;
+
+		this->positional_score += piece_kind_fn::get_position_score(
+			captured_piece.kind,
+			player_color_fn::opposite(this->turn_color()),
+			info.move.destination
+		);
 	}
 
 	// Restore cached info
@@ -793,3 +877,66 @@ void board_t::unmake_move(move_info_t info){
 	this->current_hash = info.current_hash;
 	this->_pseudolegal_moves = info.pseudolegal_moves;
 }
+
+std::string board_t::fen() {
+	std::string re;
+	int empty_count = 0;
+
+	for (int row = 7; row >= 0; row--) {
+		for (int col = 0; col < 8; col++) {
+			auto mb_piece = this->piece({ row, col });
+
+			if (mb_piece.has_value()) {
+				if (empty_count > 0) {
+					re += ('0' + empty_count);
+					empty_count = 0;
+				}
+				
+				auto piece = mb_piece.value();
+
+				char kind;
+				switch (piece.kind) {
+				case piece_kind::pawn: kind = 'p'; break;
+				case piece_kind::knight: kind = 'n'; break;
+				case piece_kind::bishop: kind = 'b'; break;
+				case piece_kind::rook: kind = 'r'; break;
+				case piece_kind::queen: kind = 'q'; break;
+				case piece_kind::king: kind = 'k'; break;
+				}
+
+				re += piece.color == player_color::white
+				? std::toupper(kind) : kind;
+			}
+			else {
+				empty_count++;
+			}
+		}
+
+		if (empty_count > 0) {
+			re += ('0' + empty_count);
+			empty_count = 0;
+		}
+		
+		re += "/";
+	}
+
+	re.back() = ' ';
+
+	re += this->turn_color() == player_color::white ? "w" : "b";
+	re += " ";
+
+	if (!this->white_king_or_left_rook_moved) re += "Q";
+	if (!this->white_king_or_right_rook_moved) re += "K";
+	if (!this->black_king_or_left_rook_moved) re += "q";
+	if (!this->black_king_or_right_rook_moved) re += "k";
+
+	if (re.back() == ' ') re += "-";
+	
+	re += " - ";
+
+	re += ('0' + this->turns_since_capture_or_pawn_move);
+
+	re += " ?";
+	
+	return re;
+}	

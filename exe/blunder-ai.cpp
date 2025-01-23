@@ -4,7 +4,6 @@
 #include <fstream>
 #include <move_t.h>
 #include <search_fn.h>
-#include <strategy_fn.h>
 
 using namespace engine;
 
@@ -23,9 +22,7 @@ int main(int argc, char** argv) {
 			board.make_move(move_string);
 		}
 
-		move_t chosen_move = strategies::minmax(board);
-		board.make_move(chosen_move);
-
+		move_t chosen_move = engine::pv_search(board);
 		output_file << chosen_move << std::endl;
 	
 		return 0;

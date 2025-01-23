@@ -1,7 +1,7 @@
 #include <chrono>
 #include <board_t.h>
 #include <bitset>
-#include <strategy_fn.h>
+#include <search_fn.h>
 
 using namespace engine;
 
@@ -16,10 +16,22 @@ void perft(board_t& board, int depth, int& counter) {
 
 	for (const move_t& move : pseudolegal_moves) {
 		if (!board.is_legal(move)) continue;
-
+		
+		board_t copy = board;
 		auto move_info = board.make_move(move);
 		perft(board, depth - 1, counter);
 		board.unmake_move(move_info);
+
+		if (copy != board) {
+			std::cout << "Board is: " << std::endl;
+			std::cout << board << std::endl;
+			std::cout << "With score: " << board.score() << std::endl;
+			std::cout << "But should be: " << std::endl;
+			std::cout << copy << std::endl;
+			std::cout << "With score: " << copy.score() << std::endl;
+			std::cout << "After making the move: " << move << std::endl;
+			throw "[Perft]: make_move and unmake_move do not invert: ";
+		}
 	}
 }
 
@@ -35,9 +47,11 @@ int main() {
 
 	high_resolution_clock::time_point start_time, end_time;
 
-	board_t start_board;
+	board_t start_board { "2bqkbnr/3n3p/Q3p3/p3N1p1/P1p2PP1/NpPp3B/1P1P1P1P/R1BK3R w k - 0 ?" };
 	
-	for (int i = 0; i < 6; i++) {
+	std::cout << start_board.score();
+
+	for (int i = 0; i < 5; i++) {
 		start_time = high_resolution_clock::now();
 		int result = perft(start_board, i);
 		end_time = high_resolution_clock::now();
@@ -46,14 +60,10 @@ int main() {
 		<< duration_cast<milliseconds>(end_time - start_time).count() << "ms." << std::endl;
 	}
 
-	for (int i = 1; i < 9; i++) {
-		start_time = high_resolution_clock::now();
-		strategies::minmax(start_board, i);
-		end_time = high_resolution_clock::now();
+	std::cout << start_board.score();
 
-		std::cout << "Running minmax with depth " << i << ". It tooks "
-		<< duration_cast<milliseconds>(end_time - start_time).count() << "ms." << std::endl;
-	}
+	std::cout << "Principal Variation Search: " << std::endl;
+	std::cout << engine::pv_search(start_board);
 
 	std::bitset<265> a;
 	

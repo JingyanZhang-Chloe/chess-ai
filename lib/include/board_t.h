@@ -58,10 +58,12 @@ public:
 	bool is_draw();
 	bool is_game_over();
 
-	float score();
+	int score();
 
 	using hash_t = cardboard_t;
 	hash_t to_bitset();
+
+	std::string fen();
 
 private:
 	std::optional<piece_t> pieces[64];
@@ -79,6 +81,8 @@ private:
 	std::array<int, 12> __piece_count;
 	int& _piece_count(player_color, piece_kind);
 	const int& _piece_count(player_color, piece_kind) const;
+
+	int positional_score;
 
 	std::unordered_map<hash_t, int> position_count;
 
