@@ -1,3 +1,11 @@
+| Contributor | Commits | Responsible for |
+|---|---|---|
+| **Leo Erdos** | 113 | Build system and tooling; the board (`board_t`) and its rules; the final version of move generation; evaluation; the whole search (minimax, cache, Principal Variation Search); position hashing (`cardboard_t`); perft, performance and hash tests; opening-table generator. |
+| **Jingyan Zhang** | 52 | `move_t` parsing and printing; first version of move generation for rook, bishop, queen, pawn and king; `move_info_t` and `unmake_move`; en passant and castling in make/unmake; checkmate detection; PGN/SAN → UCI conversion and the game dataset; the opening tree (`tree_t`); final README. |
+| **Victor Martin** | 37 | Engine command-line I/O and UCI output format; first engine test harness; first legal-move dispatcher; first position hash (for repetition draws and the search cache); alpha-beta pruning added to the minimax. |
+| **Genrikh Kuznetsov** | 4 | Hand-written opening book (`opening_book.cpp`); `Vector` and `Matrix` classes. |
+
+
 Meeting 1: The team met during the TD session to collaborate on the initial setup of the project. Together, we created the CMakeLists file to manage the build process and set up a GitLab repository for version control. Each member created their own branches, and we went through the process of learning how to commit changes and merge them into the main branch. This session established the groundwork for our collaboration and ensured that everyone was aligned on version control practices.
 
 Meeting 2: We met during the lecture to discuss and divide the project tasks. The focus was on splitting responsibilities for implementing the board and moves logic. The team agreed on the scope of each task, and I was assigned the responsibility of implementing the moves for the queen, bishop, and rook. This meeting ensured that all team members had clear objectives and that the workload was evenly distributed.
